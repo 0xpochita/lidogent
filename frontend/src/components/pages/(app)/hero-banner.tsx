@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useTreasuryStore } from "@/stores/treasury-store";
 
@@ -11,7 +12,7 @@ function YieldProgress({ rate }: { rate: number }) {
   const percentage = Math.min(rate * 100, 100);
 
   return (
-    <div className="mt-3 w-full">
+    <div className="mt-2 w-full">
       <div className="flex items-center justify-between text-xs text-white/70">
         <span>Yield accumulation</span>
         <span>{percentage.toFixed(1)}%</span>
@@ -21,6 +22,32 @@ function YieldProgress({ rate }: { rate: number }) {
           className="h-1.5 rounded-full bg-white transition-all duration-500"
           style={{ width: `${percentage}%` }}
         />
+      </div>
+    </div>
+  );
+}
+
+function LiveYield() {
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const micro = (tick * 0.000001).toFixed(6);
+
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-semibold text-white">
+        ~3.5% APY
+      </span>
+      <div className="flex items-center gap-1.5">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
+        </span>
+        <span className="font-mono text-[10px] text-white/60">+{micro} stETH</span>
       </div>
     </div>
   );
@@ -80,6 +107,7 @@ export function HeroBanner() {
               {formatETH(yield_)} stETH
               <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={20} height={20} />
             </p>
+            <LiveYield />
             <YieldProgress rate={treasury?.yieldRate ?? 0} />
           </div>
 

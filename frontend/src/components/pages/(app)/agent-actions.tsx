@@ -4,6 +4,13 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useTreasuryStore } from "@/stores/treasury-store";
 
+const AGENTS = [
+  { id: "parent", label: "Parent Agent", role: "Treasury Owner", budget: "1.2000" },
+  { id: "sub-a", label: "Sub-Agent A", role: "Research", budget: "0.2800" },
+  { id: "sub-b", label: "Sub-Agent B", role: "Execution", budget: "0.2900" },
+  { id: "sub-c", label: "Sub-Agent C", role: "Integration", budget: "0.2850" },
+];
+
 function formatETH(value: string): string {
   return Number.parseFloat(value || "0").toFixed(4);
 }
@@ -43,10 +50,11 @@ export function AgentActions() {
   const treasury = useTreasuryStore((s) => s.treasury);
   const [amount, setAmount] = useState("");
   const [recipient, setRecipient] = useState("");
+  const [selectedAgent, setSelectedAgent] = useState("parent");
 
-  const available = treasury?.availableYield ?? "0";
   const isPaused = treasury?.isPaused ?? false;
-  const nextCycle = treasury?.nextCycleTimestamp ?? 0;
+  const nextCycle = treasury?.nextCycleTimestamp ?? Math.floor(Date.now() / 1000) + 86400;
+  const agent = AGENTS.find((a) => a.id === selectedAgent) ?? AGENTS[0];
 
   return (
     <div className="space-y-6">
@@ -57,15 +65,36 @@ export function AgentActions() {
         </p>
       </div>
 
-      <div className="flex items-center justify-between rounded-xl bg-brand-light px-5 py-4">
-        <span className="text-sm font-medium text-text-secondary">Available yield</span>
-        <span className="flex items-center gap-1.5 text-lg font-semibold text-brand">
-          {formatETH(available)} stETH
-          <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={18} height={18} />
-        </span>
-      </div>
-
       <div className="space-y-4">
+        <div>
+          <label htmlFor="agent-select" className="mb-1.5 block text-sm font-medium text-text-main">
+            Select Agent
+          </label>
+          <select
+            id="agent-select"
+            value={selectedAgent}
+            onChange={(e) => setSelectedAgent(e.target.value)}
+            className="w-full cursor-pointer appearance-none rounded-xl border border-border-main bg-main-bg px-4 py-3 text-sm text-text-main focus:border-brand focus:outline-none"
+          >
+            {AGENTS.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.label} ({a.role})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex items-center justify-between rounded-xl bg-brand-light px-5 py-4">
+          <div>
+            <span className="text-sm font-medium text-text-secondary">Remaining budget</span>
+            <p className="mt-0.5 text-xs text-text-secondary">{agent.role}</p>
+          </div>
+          <span className="flex items-center gap-1.5 text-lg font-semibold text-brand">
+            {formatETH(agent.budget)} stETH
+            <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={18} height={18} />
+          </span>
+        </div>
+
         <div>
           <label htmlFor="spend-recipient" className="mb-1.5 block text-sm font-medium text-text-main">
             Recipient
@@ -111,7 +140,7 @@ export function AgentActions() {
         {isPaused ? "Agent Paused" : "Trigger Spend"}
       </button>
 
-      {nextCycle > 0 && <CycleCountdown targetTimestamp={nextCycle} />}
+      <CycleCountdown targetTimestamp={nextCycle} />
     </div>
   );
 }
