@@ -7,7 +7,8 @@ import { ConnectWallet } from "./connect-wallet";
 
 const NAV_ITEMS = [
   { href: "/", label: "Stake" },
-  { href: "/treasury", label: "Agent Treasury" },
+  { href: "/agent-hub", label: "Agent Hub" },
+  { href: "/treasury", label: "Treasury" },
 ];
 
 export function Header() {

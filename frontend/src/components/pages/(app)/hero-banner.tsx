@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { PiPlantFill } from "react-icons/pi";
 import { useTreasuryStore } from "@/stores/treasury-store";
 
 function formatETH(value: string): string {
@@ -43,10 +44,7 @@ function LiveYield() {
         ~3.5% APY
       </span>
       <div className="flex items-center gap-1.5">
-        <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
-        </span>
+        <PiPlantFill className="h-3.5 w-3.5 text-green-400" />
         <span className="font-mono text-[10px] text-white/60">+{micro} stETH</span>
       </div>
     </div>

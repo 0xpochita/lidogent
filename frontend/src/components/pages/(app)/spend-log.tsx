@@ -26,9 +26,9 @@ const MOCK_LOGS = [
     agent: "0xBb2Cc3Dd4Ee5Ff600112233445566778899bBcC",
     agentLabel: "Execution",
     to: "0x5566778899001122334455667788990011DdEeFf",
-    toLabel: "AWS Billing",
-    amount: "0.0450",
-    memo: "GPU compute — model fine-tuning batch #8",
+    toLabel: "Claude API",
+    amount: "0.0320",
+    memo: "Code review for treasury contract",
   },
   {
     id: "3",
@@ -46,9 +46,9 @@ const MOCK_LOGS = [
     agent: "0xCc3Dd4Ee5Ff60011223344556677889900cCdDeE",
     agentLabel: "Integration",
     to: "0x7788990011223344556677889900112233FfAa11",
-    toLabel: "Alchemy RPC",
+    toLabel: "Gemini API",
     amount: "0.0035",
-    memo: "RPC credits — mainnet indexing",
+    memo: "Data extraction — market trends analysis",
   },
 ];
 
