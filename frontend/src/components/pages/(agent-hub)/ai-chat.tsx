@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { HiOutlinePaperAirplane } from "react-icons/hi2";
+import { HiOutlinePaperAirplane, HiOutlineUserCircle, HiOutlineMagnifyingGlass, HiOutlineCpuChip, HiOutlinePuzzlePiece, HiOutlineChevronDown } from "react-icons/hi2";
 
 interface Message {
   id: string;
@@ -50,6 +50,60 @@ const MOCK_MESSAGES: Message[] = [
     timestamp: Date.now() - 55000,
   },
 ];
+
+const AGENTS = [
+  { id: "parent", label: "Parent Agent", icon: <HiOutlineUserCircle className="h-4 w-4" /> },
+  { id: "sub-a", label: "Sub-Agent A (Research)", icon: <HiOutlineMagnifyingGlass className="h-4 w-4" /> },
+  { id: "sub-b", label: "Sub-Agent B (Execution)", icon: <HiOutlineCpuChip className="h-4 w-4" /> },
+  { id: "sub-c", label: "Sub-Agent C (Integration)", icon: <HiOutlinePuzzlePiece className="h-4 w-4" /> },
+];
+
+function AgentSelector() {
+  const [selected, setSelected] = useState("parent");
+  const [open, setOpen] = useState(false);
+  const current = AGENTS.find((a) => a.id === selected) ?? AGENTS[0];
+
+  return (
+    <div className="flex items-center gap-2">
+      <p className="text-[11px] text-text-secondary">Pay via x402 from</p>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          className="flex cursor-pointer items-center gap-2 rounded-lg border border-border-main bg-surface px-2.5 py-1 text-[11px] font-medium text-text-main transition-colors hover:border-brand"
+        >
+          <span className="text-brand">{current.icon}</span>
+          <span>{current.label}</span>
+          <HiOutlineChevronDown className={`h-3 w-3 text-text-secondary transition-transform ${open ? "rotate-180" : ""}`} />
+        </button>
+        {open && (
+          <div className="absolute bottom-full left-0 z-50 mb-1 w-56 overflow-hidden rounded-xl border border-border-main bg-surface shadow-lg">
+            {AGENTS.map((agent) => (
+              <button
+                key={agent.id}
+                type="button"
+                onClick={() => { setSelected(agent.id); setOpen(false); }}
+                className={`flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left text-xs transition-colors ${
+                  selected === agent.id
+                    ? "bg-brand-light font-medium text-brand"
+                    : "text-text-main hover:bg-main-bg"
+                }`}
+              >
+                <span className={selected === agent.id ? "text-brand" : "text-text-secondary"}>{agent.icon}</span>
+                <span>{agent.label}</span>
+                {selected === agent.id && (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="ml-auto h-3.5 w-3.5 text-brand">
+                    <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function ModelLogo({ model }: { model: string }) {
   const m = MODELS.find((mod) => mod.id === model);
@@ -153,9 +207,7 @@ export function AiChat() {
       </div>
 
       <div className="mt-2 flex items-center justify-between px-1">
-        <p className="text-[11px] text-text-secondary">
-          Payments processed via x402 HTTP payment protocol
-        </p>
+        <AgentSelector />
         <p className="flex items-center gap-1 text-[11px] text-text-secondary">
           <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={10} height={10} />
           Paid from yield balance
