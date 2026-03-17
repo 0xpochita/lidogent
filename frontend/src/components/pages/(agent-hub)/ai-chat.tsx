@@ -129,8 +129,8 @@ function ActiveAgentCard({ agentId }: { agentId: string }) {
       <div className="mt-2 flex items-center justify-between gap-1">
         <span className="text-xs text-text-secondary">Remaining budget:</span>
         <span className="flex items-center gap-1 text-xs font-semibold text-brand">
-          {budgets[agentId] ?? "0.0000"} stETH
-          <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={12} height={12} />
+          {budgets[agentId] ?? "0.0000"} wstETH
+          <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={12} height={12} />
         </span>
       </div>
     </div>
@@ -152,12 +152,12 @@ export function AiChat() {
           <h2 className="text-base font-semibold text-text-main">Chat with AI</h2>
           <div className="mt-1 flex items-center gap-1 text-sm text-text-secondary">
             <span>Paid with</span>
-            <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={14} height={14} />
-            <span>stETH yield</span>
+            <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={14} height={14} />
+            <span>wstETH yield</span>
           </div>
           <p className="mt-0.5 flex items-center gap-1 text-xs text-text-secondary">
-            <span>~{currentModel.costPerReq} stETH</span>
-            <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={12} height={12} />
+            <span>~{currentModel.costPerReq} wstETH</span>
+            <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={12} height={12} />
             <span>/ request</span>
           </p>
         </div>
@@ -203,9 +203,9 @@ export function AiChat() {
                 </p>
                 {msg.cost && (
                   <div className="mt-2 flex items-center gap-1 border-t border-border-main/20 pt-2">
-                    <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={10} height={10} />
+                    <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={10} height={10} />
                     <span className={`text-[10px] ${msg.role === "user" ? "text-white/60" : "text-text-secondary"}`}>
-                      {msg.cost} stETH via x402
+                      {msg.cost} wstETH via x402
                     </span>
                   </div>
                 )}
@@ -237,7 +237,7 @@ export function AiChat() {
       <div className="mt-2 flex items-center justify-between px-1">
         <AgentSelector selected={selectedAgent} onSelect={setSelectedAgent} />
         <p className="flex items-center gap-1 text-[11px] text-text-secondary">
-          <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={10} height={10} />
+          <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={10} height={10} />
           Paid from yield balance
         </p>
       </div>

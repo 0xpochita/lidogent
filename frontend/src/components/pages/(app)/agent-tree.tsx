@@ -31,7 +31,7 @@ function ProgressBar({ spent, budget }: { spent: string; budget: string }) {
   return (
     <div className="mt-2">
       <div className="flex items-center justify-between text-[10px] text-text-secondary">
-        <span>{formatETH(spent)} / {formatETH(budget)} stETH</span>
+        <span>{formatETH(spent)} / {formatETH(budget)} wstETH</span>
         <span>{pct.toFixed(0)}%</span>
       </div>
       <div className="mt-1 h-1.5 w-full rounded-full bg-border-main">
@@ -99,7 +99,7 @@ export function AgentTree() {
             </div>
           </div>
           <div className="text-right">
-            <p className="text-sm font-semibold text-text-main">{formatETH(tree.totalBudget)} stETH</p>
+            <p className="text-sm font-semibold text-text-main">{formatETH(tree.totalBudget)} wstETH</p>
             <p className="text-xs text-text-secondary">Total budget</p>
           </div>
         </div>

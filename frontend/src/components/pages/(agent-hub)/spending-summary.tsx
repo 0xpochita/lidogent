@@ -28,21 +28,21 @@ export function SpendingSummary() {
           <p className="text-[11px] uppercase tracking-wider text-text-secondary">Budget</p>
           <p className="mt-1 flex items-center gap-1 text-lg font-semibold text-text-main">
             {formatETH(String(totalBudget))}
-            <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={14} height={14} />
+            <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={14} height={14} />
           </p>
         </div>
         <div className="rounded-xl bg-brand-light p-4">
           <p className="text-[11px] uppercase tracking-wider text-text-secondary">Spent</p>
           <p className="mt-1 flex items-center gap-1 text-lg font-semibold text-brand">
             {formatETH(String(totalSpent))}
-            <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={14} height={14} />
+            <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={14} height={14} />
           </p>
         </div>
         <div className="rounded-xl bg-main-bg p-4">
           <p className="text-[11px] uppercase tracking-wider text-text-secondary">Remaining</p>
           <p className="mt-1 flex items-center gap-1 text-lg font-semibold text-text-main">
             {formatETH(String(remaining))}
-            <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={14} height={14} />
+            <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={14} height={14} />
           </p>
         </div>
       </div>

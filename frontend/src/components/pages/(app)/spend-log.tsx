@@ -117,8 +117,8 @@ export function SpendLog() {
               </div>
               <div className="text-right">
                 <span className="flex items-center gap-1.5 text-sm font-semibold text-text-main">
-                  {formatETH(record.amount)} stETH
-                  <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={16} height={16} />
+                  {formatETH(record.amount)} wstETH
+                  <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={16} height={16} />
                 </span>
                 <p className="mt-0.5 text-xs text-text-secondary">{formatTimestamp(record.timestamp)}</p>
               </div>

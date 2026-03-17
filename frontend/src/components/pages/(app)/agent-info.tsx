@@ -47,11 +47,11 @@ function BudgetCycle() {
         </div>
         <div className="flex items-center justify-between rounded-xl border border-border-main px-5 py-4">
           <span className="text-sm text-text-secondary">Allocated to sub-agents</span>
-          <span className="text-sm font-medium text-text-main">0.8550 stETH</span>
+          <span className="text-sm font-medium text-text-main">0.8550 wstETH</span>
         </div>
         <div className="flex items-center justify-between rounded-xl border border-border-main px-5 py-4">
           <span className="text-sm text-text-secondary">Unallocated yield</span>
-          <span className="text-sm font-semibold text-brand">0.3450 stETH</span>
+          <span className="text-sm font-semibold text-brand">0.3450 wstETH</span>
         </div>
       </div>
     </div>

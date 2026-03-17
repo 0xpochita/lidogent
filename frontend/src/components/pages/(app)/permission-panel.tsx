@@ -125,7 +125,7 @@ function CapControl({
             placeholder={placeholder}
             className="w-full rounded-lg border border-border-main bg-main-bg px-3 py-2 text-sm text-text-main placeholder:text-text-secondary/50 focus:border-brand focus:outline-none"
           />
-          <span className="whitespace-nowrap text-sm text-text-secondary">stETH</span>
+          <span className="whitespace-nowrap text-sm text-text-secondary">wstETH</span>
         </div>
       )}
     </div>

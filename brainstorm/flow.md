@@ -6,137 +6,154 @@ User opens Lidogent and clicks "Connect Wallet" in the header. RainbowKit modal 
 
 ---
 
-## Step 2: Stake ETH to Get stETH
+## Step 2: Stake ETH or Wrap stETH
 
 **Page: Stake (`/`)**
 
-User enters an amount of ETH in the Stake panel. The interface shows:
-- Exchange rate (1 ETH = ~1.0000 stETH)
+The Stake page has two modes, selectable via toggle tabs at the top:
+
+### Mode A: Stake (ETH to stETH)
+User enters an amount of ETH. The interface shows:
+- Exchange rate (1 ETH = 1.0000 stETH) with ETH and stETH logos
 - Estimated stETH to receive
 - Max transaction cost (~$0.50)
 - Reward fee (10%)
 
-User clicks "Stake ETH" and confirms the transaction. ETH is sent to Lido, user receives stETH in their wallet. stETH earns ~3.5% APY from Ethereum staking rewards.
+User clicks "Stake ETH" and confirms. ETH is sent to Lido, user receives stETH.
 
-**After staking:** User can see the Treasury Overview banner below showing their locked principal, spendable yield, and total spent.
+### Mode B: Wrap (stETH to wstETH to Treasury)
+For users who already have stETH. The interface shows:
+- Flow indicator: stETH > wstETH > Treasury
+- Exchange rate (1 stETH = ~0.8695 wstETH)
+- Output in wstETH, locked as principal in treasury
+- Max transaction cost (~$0.10)
+
+User clicks "Wrap & Lock in Treasury". stETH is wrapped to wstETH and deposited into the treasury contract in one transaction.
+
+**After staking/wrapping:** User can see the Treasury Overview banner below showing locked principal (wstETH), spendable yield, and total spent.
 
 ---
 
-## Step 3: Deposit stETH to Agent Treasury
+## Step 3: Deposit wstETH to Agent Treasury
 
-**Page: Treasury (`/treasury`)**
+**Page: Stake (`/`) — Wrap mode, or Treasury (`/treasury`)**
 
-User navigates to the Treasury page. In the Agent Actions tab, user deposits stETH into the treasury smart contract.
-
-What happens onchain:
-- stETH is wrapped to wstETH internally
+User wraps stETH to wstETH and locks it in the treasury. What happens onchain:
+- stETH is wrapped to wstETH (non-rebasing)
 - The initial wstETH amount is recorded as principal
 - Principal is structurally locked — no function exists for the agent to withdraw it
 - Over time, wstETH value grows relative to stETH (that growth is the yield)
 - Only the yield portion becomes spendable by the agent
 
+All treasury balances are denominated in **wstETH**.
+
 ---
 
 ## Step 4: Configure Agent Permissions
 
-**Page: Treasury (`/treasury`) > Permissions tab**
+**Page: Treasury (`/treasury`) > Set Permissions tab**
 
-User sets spending rules:
+User sets spending rules (first tab in dashboard, following the config flow order):
 
-1. **Recipient Whitelist** — Toggle on, then add addresses of AI services the agent is allowed to pay (e.g. Claude API billing address, Perplexity API address)
+1. **Recipient Whitelist** — Toggle on, then add addresses of AI services the agent is allowed to pay
+2. **Per-Transaction Cap** — Set maximum wstETH per single transaction (e.g. 0.01 wstETH)
+3. **Daily Rate Limit** — Set maximum total wstETH per day (e.g. 0.1 wstETH/day)
 
-2. **Per-Transaction Cap** — Set maximum stETH per single transaction (e.g. 0.01 stETH). Prevents the agent from draining yield in one transaction.
-
-3. **Daily Rate Limit** — Set maximum total stETH per day (e.g. 0.1 stETH/day). Controls how fast the agent can spend.
-
-All three are enforced at the smart contract level. If any rule is violated, the transaction reverts onchain.
+All three are enforced at the smart contract level.
 
 ---
 
 ## Step 5: Set Up Agent Hierarchy
 
-**Page: Treasury (`/treasury`) > Hierarchy tab**
+**Page: Treasury (`/treasury`) > Setup Hierarchy tab**
 
 User configures sub-agents with dedicated budgets:
 
-- **Parent Agent** — Total budget from yield (e.g. 1.2000 stETH)
-- **Sub-Agent A (Research)** — Allocated 0.4000 stETH for research tasks
-- **Sub-Agent B (Execution)** — Allocated 0.5000 stETH for compute tasks
-- **Sub-Agent C (Integration)** — Allocated 0.3000 stETH for integration tasks
+- **Parent Agent** — Total budget from yield (e.g. 1.2000 wstETH)
+- **Sub-Agent A (Research)** — Allocated 0.4000 wstETH, magnifying glass icon
+- **Sub-Agent B (Execution)** — Allocated 0.5000 wstETH, CPU chip icon
+- **Sub-Agent C (Integration)** — Allocated 0.3000 wstETH, puzzle piece icon
 
-Each sub-agent can only spend within its allocated cap. User can pause/resume individual sub-agents at any time.
+Each sub-agent has a progress bar (spent vs cap), status badge, and pause/resume button.
 
 ---
 
-## Step 6: Add AI Services
+## Step 6: Review Budget & Cycle
+
+**Page: Treasury (`/treasury`) > Budget & Cycle tab**
+
+User reviews:
+- Cycle duration (30 days)
+- Next reset countdown timer
+- Total yield allocated across all sub-agents (0.8550 wstETH)
+- Unallocated yield remaining (0.3450 wstETH)
+
+---
+
+## Step 7: Add AI Services
 
 **Page: Agent Hub (`/agent-hub`)**
 
-User clicks "Add Service" in the Active Services card. A modal appears with popular AI services:
+User clicks "Add Service" in the Active Services card. A modal (with framer-motion animation) appears with AI services:
 
-- Claude API (Anthropic)
-- ChatGPT API (OpenAI)
-- Gemini API (Google)
-- Perplexity API (Perplexity AI)
+- Claude API (Anthropic) — with logo
+- ChatGPT API (OpenAI) — with logo
+- Gemini API (Google) — with logo
+- Perplexity API (Perplexity AI) — with logo
 
-User selects a service and sets a monthly budget cap. The service address gets added to the whitelist automatically. User can also enter a custom recipient address for other services.
+User can also enter a custom recipient address. The service address gets added to the whitelist automatically.
 
 ---
 
-## Step 7: Chat with AI (Pay Per Request)
+## Step 8: Chat with AI (Pay Per Request)
 
 **Page: Agent Hub (`/agent-hub`) > AI Chat**
 
-User selects an AI model (Claude, ChatGPT, Gemini, or Perplexity) and types a message. The flow:
+User selects an AI model and types a message. The flow:
 
-1. User sends message
-2. Request goes to AI model via API
-3. Payment is triggered via x402 HTTP payment protocol
-4. Cost (e.g. 0.0003 stETH) is deducted from the selected agent's yield balance
-5. AI response appears in the chat with cost displayed (e.g. "0.0003 stETH via x402")
-
-User can choose which agent pays via the agent selector at the bottom:
-- Parent Agent
-- Sub-Agent A (Research)
-- Sub-Agent B (Execution)
-- Sub-Agent C (Integration)
-
-The Active Agent card in the top right shows the currently selected agent and its remaining budget.
+1. User selects model (Claude, ChatGPT, Gemini, or Perplexity) via tab buttons with logos
+2. User selects which agent pays via dropdown at bottom (Parent, Sub-Agent A/B/C with role icons)
+3. Active Agent card (top right) shows selected agent and remaining wstETH budget
+4. User sends message
+5. Payment is triggered via x402 HTTP payment protocol
+6. Cost (e.g. 0.0003 wstETH) is deducted from the selected agent's yield balance
+7. AI response appears with cost displayed (e.g. "0.0003 wstETH via x402")
 
 ---
 
-## Step 8: Monitor Spending
+## Step 9: Monitor Spending
 
 **Page: Agent Hub (`/agent-hub`)**
 
-User monitors spending across all services:
+User monitors spending across all services in dashboard cards:
 
-- **Monthly Spending** — Total budget vs spent vs remaining, with breakdown by category (Research, Infrastructure, Hosting)
-- **Active Services** — Table showing each service's usage progress bar, last used time, and revoke button
-- **Activity Feed** — Real-time timeline of payments, approvals, alerts, and yield harvests
+- **Monthly Spending** — Total budget vs spent vs remaining (wstETH), with category breakdown
+- **Quick Actions** — Add Service, Pause All, Refresh, Alerts
+- **Active Services** — Table with real AI service logos, usage progress bars, revoke buttons
+- **Activity Feed** — Real-time timeline with service logos, costs, timestamps
 
 ---
 
-## Step 9: Review Transaction History
+## Step 10: Review Transaction History
 
 **Page: Treasury (`/treasury`) > Spend Log tab**
 
 User reviews detailed transaction history:
 - Filter by agent role
-- See color-coded agent badges (Research, Execution, Integration)
-- Each transaction shows: recipient label, amount in stETH, memo, and timestamp
+- Color-coded agent badges (Research=blue, Execution=amber, Integration=green)
+- Each transaction shows: recipient label, amount in wstETH with logo, memo, timestamp
 
 ---
 
-## Step 10: Adjust and Maintain
+## Step 11: Adjust and Maintain
 
 User can at any time:
-- **Pause agents** — Freeze all spending instantly via Quick Actions or per sub-agent in Hierarchy
-- **Revoke services** — Remove a service from the whitelist in Active Services
-- **Adjust caps** — Change per-transaction or daily limits in Permissions
-- **Reallocate budgets** — Shift yield between sub-agents in Hierarchy
+- **Pause agents** — Freeze spending via Quick Actions or per sub-agent in Hierarchy
+- **Revoke services** — Remove a service from whitelist in Active Services
+- **Adjust caps** — Change per-transaction or daily limits in Set Permissions
+- **Reallocate budgets** — Shift yield between sub-agents in Setup Hierarchy
 - **Withdraw principal** — Owner can withdraw the locked principal (only owner, never agent)
-- **Top up** — Stake more ETH and deposit more stETH to increase yield budget
+- **Top up** — Stake more ETH, then wrap & lock more wstETH
 
 ---
 
@@ -156,20 +173,21 @@ User can at any time:
 ## Flow Diagram
 
 ```
-    STAKE                    CONFIGURE                    EXECUTE
-      │                         │                           │
-      ▼                         ▼                           ▼
-  ┌────────┐            ┌──────────────┐            ┌──────────────┐
-  │        │            │              │            │              │
-  │  ETH   │──stake──▶  │   Treasury   │──yield──▶  │  Agent Hub   │
-  │   →    │            │              │            │              │
-  │ stETH  │            │ - Permissions│            │ - AI Chat    │
-  │        │            │ - Hierarchy  │            │ - Services   │
-  │        │            │ - Budgets    │            │ - Activity   │
-  │        │            │ - Spend Log  │            │ - Spending   │
-  └────────┘            └──────────────┘            └──────────────┘
-       │                       │                          │
-       │              principal locked              pay per request
-       │              yield flows out               via x402 from
-       └───────────────────────┴──────────────────── stETH yield
+    STAKE / WRAP              CONFIGURE                    EXECUTE
+        |                        |                           |
+        v                        v                           v
+  +-----------+          +---------------+           +---------------+
+  |           |          |               |           |               |
+  | ETH       |--stake-> |   Treasury    |--yield--> |  Agent Hub    |
+  |  -> stETH |          |               |           |               |
+  |  -> wstETH|--wrap--> | 1.Set Perms   |           | - AI Chat     |
+  |           |          | 2.Hierarchy   |           | - Services    |
+  |           |          | 3.Budget      |           | - Activity    |
+  |           |          | 4.Spend       |           | - Spending    |
+  |           |          | 5.Log         |           |               |
+  +-----------+          +---------------+           +---------------+
+        |                       |                          |
+        |              principal locked              pay per request
+        |              (wstETH)                      via x402 from
+        +-------------------+---------------------------wstETH yield
 ```

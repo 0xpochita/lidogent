@@ -66,7 +66,7 @@ export function ActivityFeed() {
               {a.amount ? (
                 <p className="flex items-center gap-1 text-xs font-semibold text-text-main">
                   -{formatETH(a.amount)}
-                  <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={12} height={12} />
+                  <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={12} height={12} />
                 </p>
               ) : (
                 <p className={`text-[10px] font-medium ${TYPE_STYLES[a.type].split(" ")[1]}`}>{a.agent}</p>

@@ -61,7 +61,7 @@ export function AgentActions() {
       <div>
         <h3 className="text-lg font-semibold text-text-main">Trigger Spend</h3>
         <p className="mt-1 text-sm text-text-secondary">
-          Send stETH yield to a whitelisted recipient
+          Send wstETH yield to a whitelisted recipient
         </p>
       </div>
 
@@ -90,8 +90,8 @@ export function AgentActions() {
             <p className="mt-0.5 text-xs text-text-secondary">{agent.role}</p>
           </div>
           <span className="flex items-center gap-1.5 text-lg font-semibold text-brand">
-            {formatETH(agent.budget)} stETH
-            <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={18} height={18} />
+            {formatETH(agent.budget)} wstETH
+            <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={18} height={18} />
           </span>
         </div>
 
@@ -125,8 +125,8 @@ export function AgentActions() {
               className="w-full rounded-xl border border-border-main bg-main-bg px-4 py-3 text-sm text-text-main placeholder:text-text-secondary/50 focus:border-brand focus:outline-none disabled:opacity-50"
             />
             <span className="flex items-center gap-1 whitespace-nowrap text-sm text-text-secondary">
-              stETH
-              <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={16} height={16} />
+              wstETH
+              <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={16} height={16} />
             </span>
           </div>
         </div>

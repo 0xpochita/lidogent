@@ -45,7 +45,7 @@ function LiveYield() {
       </span>
       <div className="flex items-center gap-1.5">
         <PiPlantFill className="h-3.5 w-3.5 text-green-400" />
-        <span className="font-mono text-[10px] text-white/60">+{micro} stETH</span>
+        <span className="font-mono text-[10px] text-white/60">+{micro} wstETH</span>
       </div>
     </div>
   );
@@ -91,8 +91,8 @@ export function HeroBanner() {
               <p className="text-xs text-white/60">Locked Principal</p>
             </div>
             <p className="mt-2 flex items-center gap-1.5 text-xl font-semibold text-white">
-              {formatETH(principal)} stETH
-              <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={20} height={20} />
+              {formatETH(principal)} wstETH
+              <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={20} height={20} />
             </p>
             <p className="mt-0.5 text-xs text-white/50">
               Inaccessible to agent
@@ -102,8 +102,8 @@ export function HeroBanner() {
           <div className="rounded-xl border border-white/20 bg-white/15 px-5 py-4 backdrop-blur-md">
             <p className="text-xs text-white/60">Spendable Yield</p>
             <p className="mt-2 flex items-center gap-1.5 text-xl font-semibold text-white">
-              {formatETH(yield_)} stETH
-              <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={20} height={20} />
+              {formatETH(yield_)} wstETH
+              <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={20} height={20} />
             </p>
             <LiveYield />
             <YieldProgress rate={treasury?.yieldRate ?? 0} />
@@ -112,8 +112,8 @@ export function HeroBanner() {
           <div className="rounded-xl bg-white/10 px-5 py-4 backdrop-blur-md">
             <p className="text-xs text-white/60">Total Spent</p>
             <p className="mt-2 flex items-center gap-1.5 text-xl font-semibold text-white">
-              {formatETH(spent)} stETH
-              <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={20} height={20} />
+              {formatETH(spent)} wstETH
+              <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={20} height={20} />
             </p>
             <p className="mt-0.5 text-xs text-white/50">From yield balance</p>
           </div>
