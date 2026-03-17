@@ -4,9 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useAccount, useDisconnect, useBalance, useSwitchChain } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { mainnet, optimism, unichain, soneium } from "wagmi/chains";
+import { mainnet } from "wagmi/chains";
 
-const CHAINS = [mainnet, optimism, unichain, soneium];
+const CHAINS = [mainnet];
 
 function truncateAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;

@@ -110,7 +110,7 @@ export function StakePanel() {
           <span className="ml-1 text-lg font-semibold text-text-main">ETH / stETH</span>
         </div>
 
-        <div className="relative aspect-[16/9] w-full overflow-hidden">
+        <div className="relative aspect-[20/9] w-full overflow-hidden">
           <Image
             src="/Assets/Images/Background/lidogent-bg.webp"
             alt="Lidogent"
@@ -121,8 +121,8 @@ export function StakePanel() {
            <div className="absolute inset-0 bg-brand/1 backdrop-blur-xs" />
           <div className="absolute inset-0 bg-brand/10" />
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-            <span className="flex items-center gap-1.5 rounded-full bg-white/80 px-4 py-1.5 text-xs font-medium text-text-main backdrop-blur-sm">
-              Powered by Lido
+            <span className="flex items-center gap-1.5 rounded-full bg-white/80 px-4 py-1.5 text-xs font-medium text-gray-600 backdrop-blur-sm">
+              Powered by Lido Finance
               <Image src="/Assets/Images/Logo/lido-dao-ldo-logo.svg" alt="Lido" width={16} height={16} />
             </span>
           </div>

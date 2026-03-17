@@ -72,7 +72,7 @@ export function HeroBanner() {
       </div>
 
       <div className="relative z-10 px-8 py-10">
-        <p className="text-sm font-medium text-white/80">Treasury Overview</p>
+        <p className="text-md font-bold text-white">Treasury Overview</p>
         <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
           <div className="rounded-xl bg-white/10 px-5 py-4 backdrop-blur-md">
             <div className="flex items-center gap-2">

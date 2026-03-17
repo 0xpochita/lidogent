@@ -58,8 +58,7 @@ const AGENTS = [
   { id: "sub-c", label: "Sub-Agent C (Integration)", icon: <HiOutlinePuzzlePiece className="h-4 w-4" /> },
 ];
 
-function AgentSelector() {
-  const [selected, setSelected] = useState("parent");
+function AgentSelector({ selected, onSelect }: { selected: string; onSelect: (id: string) => void }) {
   const [open, setOpen] = useState(false);
   const current = AGENTS.find((a) => a.id === selected) ?? AGENTS[0];
 
@@ -82,7 +81,7 @@ function AgentSelector() {
               <button
                 key={agent.id}
                 type="button"
-                onClick={() => { setSelected(agent.id); setOpen(false); }}
+                onClick={() => { onSelect(agent.id); setOpen(false); }}
                 className={`flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left text-xs transition-colors ${
                   selected === agent.id
                     ? "bg-brand-light font-medium text-brand"
@@ -111,16 +110,44 @@ function ModelLogo({ model }: { model: string }) {
   return <Image src={m.logo} alt={m.name} width={18} height={18} className="rounded-full object-cover" />;
 }
 
+function ActiveAgentCard({ agentId }: { agentId: string }) {
+  const agent = AGENTS.find((a) => a.id === agentId) ?? AGENTS[0];
+  const budgets: Record<string, string> = {
+    parent: "1.2000",
+    "sub-a": "0.2800",
+    "sub-b": "0.2900",
+    "sub-c": "0.2850",
+  };
+
+  return (
+    <div className="rounded-xl border border-brand/20 bg-brand-light px-4 py-3">
+      <p className="text-[10px] uppercase tracking-wider text-text-secondary">Active Agent</p>
+      <div className="mt-1.5 flex items-center gap-2">
+        <span className="text-brand">{agent.icon}</span>
+        <span className="text-sm font-semibold text-text-main">{agent.label}</span>
+      </div>
+      <div className="mt-2 flex items-center justify-between gap-1">
+        <span className="text-xs text-text-secondary">Remaining budget:</span>
+        <span className="flex items-center gap-1 text-xs font-semibold text-brand">
+          {budgets[agentId] ?? "0.0000"} stETH
+          <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={12} height={12} />
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function AiChat() {
   const [messages] = useState<Message[]>(MOCK_MESSAGES);
   const [input, setInput] = useState("");
   const [selectedModel, setSelectedModel] = useState("claude");
+  const [selectedAgent, setSelectedAgent] = useState("parent");
 
   const currentModel = MODELS.find((m) => m.id === selectedModel) ?? MODELS[0];
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between">
         <div>
           <h2 className="text-base font-semibold text-text-main">Chat with AI</h2>
           <div className="mt-1 flex items-center gap-1 text-sm text-text-secondary">
@@ -134,6 +161,7 @@ export function AiChat() {
             <span>/ request</span>
           </p>
         </div>
+        <ActiveAgentCard agentId={selectedAgent} />
       </div>
 
       <div className="mt-4 flex items-center gap-2">
@@ -207,7 +235,7 @@ export function AiChat() {
       </div>
 
       <div className="mt-2 flex items-center justify-between px-1">
-        <AgentSelector />
+        <AgentSelector selected={selectedAgent} onSelect={setSelectedAgent} />
         <p className="flex items-center gap-1 text-[11px] text-text-secondary">
           <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={10} height={10} />
           Paid from yield balance

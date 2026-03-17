@@ -15,24 +15,24 @@ interface Tab {
 
 const TABS: Tab[] = [
   {
-    id: "actions",
-    label: "Agent Actions",
-    icon: <HiOutlineBolt className="h-4 w-4" />,
-  },
-  {
     id: "permissions",
-    label: "Permissions",
+    label: "Set Permissions",
     icon: <HiOutlineShieldCheck className="h-4 w-4" />,
   },
   {
+    id: "hierarchy",
+    label: "Setup Hierarchy",
+    icon: <HiOutlineUserGroup className="h-4 w-4" />,
+  },
+  {
     id: "config",
-    label: "Configuration",
+    label: "Budget & Cycle",
     icon: <HiOutlineCog6Tooth className="h-4 w-4" />,
   },
   {
-    id: "hierarchy",
-    label: "Hierarchy",
-    icon: <HiOutlineUserGroup className="h-4 w-4" />,
+    id: "actions",
+    label: "Trigger Spend",
+    icon: <HiOutlineBolt className="h-4 w-4" />,
   },
   {
     id: "logs",
@@ -46,14 +46,14 @@ interface DashboardPanelProps {
 }
 
 export function DashboardPanel({ panels }: DashboardPanelProps) {
-  const [activeTab, setActiveTab] = useState("actions");
+  const [activeTab, setActiveTab] = useState("permissions");
 
   return (
     <section className="overflow-hidden rounded-2xl border border-border-main bg-surface">
       <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr]">
         <nav className="border-b border-border-main bg-main-bg p-4 lg:border-b-0 lg:border-r lg:p-6">
           <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-text-secondary">
-            Dashboard
+            Dashboard Configuration
           </p>
           <ul className="flex gap-1 overflow-x-auto lg:flex-col lg:gap-0.5">
             {TABS.map((tab) => {

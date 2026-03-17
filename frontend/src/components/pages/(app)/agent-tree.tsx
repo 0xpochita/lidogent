@@ -1,5 +1,7 @@
 "use client";
 
+import { HiOutlineUserCircle, HiOutlineMagnifyingGlass, HiOutlineCpuChip, HiOutlinePuzzlePiece } from "react-icons/hi2";
+
 const MOCK_TREE = {
   address: "0x1a2B3c4D5e6F7890AbCdEf1234567890aBcDeF12",
   label: "Parent Agent",
@@ -7,9 +9,9 @@ const MOCK_TREE = {
   spent: "0.3450",
   status: "active" as const,
   subAgents: [
-    { address: "0xAa1Bb2Cc3Dd4Ee5Ff6001122334455667788aAbB", label: "Research", role: "Sub-Agent A", budget: "0.4000", spent: "0.1200", status: "active" as const },
-    { address: "0xBb2Cc3Dd4Ee5Ff600112233445566778899bBcC", label: "Execution", role: "Sub-Agent B", budget: "0.5000", spent: "0.2100", status: "active" as const },
-    { address: "0xCc3Dd4Ee5Ff60011223344556677889900cCdDeE", label: "Integration", role: "Sub-Agent C", budget: "0.3000", spent: "0.0150", status: "paused" as const },
+    { address: "0xAa1Bb2Cc3Dd4Ee5Ff6001122334455667788aAbB", label: "Research", role: "Sub-Agent A", budget: "0.4000", spent: "0.1200", status: "active" as const, icon: <HiOutlineMagnifyingGlass className="h-4 w-4" /> },
+    { address: "0xBb2Cc3Dd4Ee5Ff600112233445566778899bBcC", label: "Execution", role: "Sub-Agent B", budget: "0.5000", spent: "0.2100", status: "active" as const, icon: <HiOutlineCpuChip className="h-4 w-4" /> },
+    { address: "0xCc3Dd4Ee5Ff60011223344556677889900cCdDeE", label: "Integration", role: "Sub-Agent C", budget: "0.3000", spent: "0.0150", status: "paused" as const, icon: <HiOutlinePuzzlePiece className="h-4 w-4" /> },
   ],
 };
 
@@ -46,8 +48,8 @@ function SubAgentCard({ agent }: { agent: typeof MOCK_TREE.subAgents[0] }) {
     <div className={`rounded-xl border p-4 transition-colors ${isPaused ? "border-gray-200 opacity-60" : "border-border-main"}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-light">
-            <span className="text-xs font-bold text-brand">{agent.label.charAt(0)}</span>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-light text-brand">
+            {agent.icon}
           </div>
           <div>
             <p className="text-sm font-medium text-text-main">{agent.role}</p>
@@ -88,8 +90,8 @@ export function AgentTree() {
       <div className="rounded-xl border-2 border-brand/20 p-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand">
-              <span className="text-sm font-bold text-white">P</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-white">
+              <HiOutlineUserCircle className="h-5 w-5" />
             </div>
             <div>
               <p className="text-sm font-semibold text-text-main">{tree.label}</p>
