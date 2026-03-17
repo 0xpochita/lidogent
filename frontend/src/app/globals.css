@@ -3,14 +3,14 @@
 @theme inline {
   --color-background: #ffffff;
   --color-foreground: #171717;
-  --color-brand: #e91e8c;
-  --color-brand-hover: #c4177a;
-  --color-brand-light: #fdf2f8;
+  --color-brand: #2563eb;
+  --color-brand-hover: #1d4ed8;
+  --color-brand-light: #eff6ff;
   --color-surface: #ffffff;
-  --color-main-bg: #fdfafc;
-  --color-border-main: #f3e8f0;
-  --color-text-main: #1a1a1a;
-  --color-text-secondary: #6b7280;
+  --color-main-bg: #f8fafc;
+  --color-border-main: #e2e8f0;
+  --color-text-main: #0f172a;
+  --color-text-secondary: #64748b;
   --font-sans: var(--font-inter);
 }
 

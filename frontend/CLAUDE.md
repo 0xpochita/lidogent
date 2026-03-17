@@ -156,24 +156,24 @@ src/components/pages/(landing)/index.ts
 
 ---
 
-## ✅ Mandatory Design System (Pink + White Minimalist)
+## Mandatory Design System (Blue + White Minimalist)
 
 ### Brand Theme (Non-Negotiable)
 
-The entire UI must follow a strict **Pink + White minimal design system**:
+The entire UI must follow a strict **Blue + White minimal design system**:
 
-* **Primary Color:** Pink (brand)
-* **Background:** White / very light pink tint only
-* **Text:** Black / neutral dark
-* **Borders:** light neutral/pink border only
+* **Primary Color:** Blue (#2563eb)
+* **Background:** White / very light slate tint only
+* **Text:** Slate dark (#0f172a)
+* **Borders:** light slate border (#e2e8f0)
 * **No other accent colors allowed** except:
 
-  * gray neutrals (black/white scale)
-  * pink shades derived from the primary
+  * gray/slate neutrals (black/white scale)
+  * blue shades derived from the primary
 
 ### Forbidden Visual Styles
 
-* No blue / purple / green / orange UI accents
+* No pink / purple / green / orange UI accents
 * No multi-color badges
 * No rainbow states
 * No gradient backgrounds
@@ -185,28 +185,29 @@ The entire UI must follow a strict **Pink + White minimal design system**:
 All new UI components must:
 
 * default to **white surface**
-* use **pink only as primary action emphasis**
+* use **blue only as primary action emphasis**
 * use **minimal borders**
 * use consistent radius + spacing
 * look clean even with no images
 
 ### Buttons / Actions Rules
 
-* Primary actions: pink background, white text
-* Secondary actions: white background, pink border + pink text
+* Primary actions: blue background, white text
+* Secondary actions: white background, blue border + blue text
 * Destructive: minimal neutral styling (no bright red unless explicitly required)
 
 ### Tailwind Tokens (Required)
 
 Define and use these tokens / utility classes (do not hardcode raw colors repeatedly):
 
-* `bg-main` → white / light pink background
+* `bg-main-bg` → white / light slate background (#f8fafc)
 * `bg-surface` → pure white card surface
-* `text-main` → neutral dark
-* `border-main` → subtle pink/neutral border
-* `text-brand` → pink
-* `bg-brand` → pink
-* `hover-brand` → darker pink
+* `text-text-main` → slate dark (#0f172a)
+* `border-border-main` → subtle slate border (#e2e8f0)
+* `text-brand` → blue (#2563eb)
+* `bg-brand` → blue (#2563eb)
+* `bg-brand-hover` → darker blue (#1d4ed8)
+* `bg-brand-light` → light blue (#eff6ff)
 
 If these don’t exist yet, create them in global styles (tailwind config / globals.css), then reuse consistently.
 

@@ -1,6 +1,10 @@
 export { Header } from "./header";
-export { TreasuryOverview } from "./treasury-overview";
-export { PermissionsPanel } from "./permissions-panel";
-export { SpendHistory } from "./spend-history";
+export { HeroBanner } from "./hero-banner";
 export { AgentInfo } from "./agent-info";
-export { StatsCard } from "./stats-card";
+export { AgentTree } from "./agent-tree";
+export { AgentActions } from "./agent-actions";
+export { PermissionPanel } from "./permission-panel";
+export { SpendLog } from "./spend-log";
+export { DashboardPanel } from "./dashboard-panel";
+export { StakePanel } from "./stake-panel";
+export { ConnectWallet } from "./connect-wallet";

@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Lido Agent Treasury",
+  title: "Lidogent",
   description:
     "Yield-bearing operating budget for AI agents, powered by stETH",
 };

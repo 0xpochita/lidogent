@@ -6,19 +6,47 @@ export interface TreasuryData {
   agentAddress: string;
   ownerAddress: string;
   isPaused: boolean;
+  yieldRate: number;
+  lastHarvestTimestamp: number;
+  nextCycleTimestamp: number;
 }
 
-export interface Permission {
-  type: "whitelist" | "transaction-cap" | "time-window";
-  label: string;
-  value: string;
-  enabled: boolean;
+export interface SubAgent {
+  address: string;
+  allocatedBudget: string;
+  spent: string;
+  status: "active" | "paused";
+}
+
+export interface AgentNode {
+  address: string;
+  allocatedBudget: string;
+  spent: string;
+  status: "active" | "paused";
+  subAgents: SubAgent[];
+}
+
+export interface PermissionConfig {
+  whitelist: {
+    enabled: boolean;
+    addresses: string[];
+  };
+  transactionCap: {
+    enabled: boolean;
+    maxAmount: string;
+  };
+  dailyRateLimit: {
+    enabled: boolean;
+    maxPerDay: string;
+  };
 }
 
 export interface SpendRecord {
   id: string;
+  agent: string;
   to: string;
   amount: string;
+  memo: string;
   timestamp: number;
   txHash: string;
 }
