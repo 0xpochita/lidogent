@@ -15,6 +15,17 @@
 - Never use `git add -A` or `git add .` without checking for sensitive files first
 - Never force push without user confirmation
 - Never commit node_modules, .next, or build artifacts
+- Use Conventional Commits for all commit messages:
+  - `feat:` — new feature
+  - `fix:` — bug fix
+  - `refactor:` — code restructure without behavior change
+  - `docs:` — documentation changes
+  - `chore:` — tooling, config, dependencies
+  - `test:` — adding or updating tests
+  - `style:` — formatting, no logic change
+  - `ci:` — CI/CD changes
+  - `perf:` — performance improvement
+  - Include scope when relevant, e.g. `feat(contracts):`, `fix(frontend):`
 
 ## Smart Contract Rules
 
