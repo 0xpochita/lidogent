@@ -43,6 +43,45 @@ All spending is enforced onchain: recipient whitelists, per-transaction caps, cy
 
 ---
 
+## Screenshots
+
+### Stake ETH via Lido
+Deposit ETH to receive stETH through Lido's staking contract. Real-time ETH price from Chainlink, balance from wallet, and exchange rate displayed. One-click staking with transaction confirmation popup.
+
+<div align="center">
+  <img src="./frontend/public/Assets/Images/Screenshoot/stake.webp" width="800" alt="Stake ETH">
+</div>
+
+### Wrap stETH & Lock in Treasury
+Wrap stETH to wstETH and lock as principal in AgentTreasury. 4-step stepper popup guides the process: approve stETH, wrap via Lido, approve wstETH, lock in treasury. All enforced onchain.
+
+<div align="center">
+  <img src="./frontend/public/Assets/Images/Screenshoot/wrap.webp" width="800" alt="Wrap stETH">
+</div>
+
+### AI Chat — Pay Per Request
+Chat with AI models (Claude, ChatGPT, Gemini, Perplexity) powered by OpenRouter. Each request is paid from the agent's wstETH yield balance via x402. Select which agent pays from the dropdown.
+
+<div align="center">
+  <img src="./frontend/public/Assets/Images/Screenshoot/chat.webp" width="800" alt="AI Chat">
+</div>
+
+### Treasury Dashboard Configuration
+Configure agent permissions, hierarchy, budget cycles, and spending controls. All settings read from and write to the deployed AgentTreasury contract on Ethereum Mainnet.
+
+<div align="center">
+  <img src="./frontend/public/Assets/Images/Screenshoot/configuration.webp" width="800" alt="Treasury Configuration">
+</div>
+
+### Activity Feed
+Track all AI chat requests and agent spending in real-time. Shows model used, message preview, cost in wstETH, and timestamp. Data persisted to localStorage.
+
+<div align="center">
+  <img src="./frontend/public/Assets/Images/Screenshoot/activity-feed.webp" width="800" alt="Activity Feed">
+</div>
+
+---
+
 ## Key Features
 
 | Feature | Description |
