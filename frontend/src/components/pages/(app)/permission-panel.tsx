@@ -1,14 +1,44 @@
 "use client";
 
 import { useState } from "react";
-import { useTreasuryStore } from "@/stores/treasury-store";
+import { parseEther, formatEther } from "viem";
+import { useWriteContract, usePublicClient } from "wagmi";
+import { toast } from "sonner";
+import { HiOutlineInformationCircle } from "react-icons/hi2";
+import { agentTreasuryConfig } from "@/config/contracts";
+import { useTreasuryRead } from "@/hooks/use-treasury";
 
-function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) {
+function InfoTooltip({ text }: { text: string }) {
+  const [show, setShow] = useState(false);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+        onClick={() => setShow(!show)}
+        className="cursor-pointer text-text-secondary transition-colors hover:text-brand"
+      >
+        <HiOutlineInformationCircle className="h-3.5 w-3.5" />
+      </button>
+      {show && (
+        <div className="absolute bottom-full left-1/2 z-50 mb-2 w-64 -translate-x-1/2 rounded-xl border border-border-main bg-surface px-4 py-3 text-xs text-text-secondary shadow-lg">
+          {text}
+          <div className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 border-b border-r border-border-main bg-surface" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Toggle({ enabled, loading, onToggle }: { enabled: boolean; loading?: boolean; onToggle: () => void }) {
   return (
     <button
       type="button"
       onClick={onToggle}
-      className={`relative h-6 w-11 cursor-pointer rounded-full transition-colors ${
+      disabled={loading}
+      className={`relative h-6 w-11 cursor-pointer rounded-full transition-colors disabled:opacity-50 ${
         enabled ? "bg-brand" : "bg-gray-200"
       }`}
     >
@@ -23,14 +53,45 @@ function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void 
 
 function WhitelistControl({
   enabled,
-  addresses,
+  loading,
   onToggle,
+  onAdd,
+  onRemove,
 }: {
   enabled: boolean;
-  addresses: string[];
+  loading: boolean;
   onToggle: () => void;
+  onAdd: (addr: string) => void;
+  onRemove: (addr: string) => void;
 }) {
   const [input, setInput] = useState("");
+  const storageKey = "lidogent-whitelist";
+
+  const getStored = (): string[] => {
+    if (typeof window === "undefined") return [];
+    try { return JSON.parse(localStorage.getItem(storageKey) || "[]"); } catch { return []; }
+  };
+
+  const [addresses, setAddresses] = useState<string[]>(getStored);
+
+  const handleAdd = () => {
+    if (!input || !input.startsWith("0x") || input.length !== 42) {
+      toast.error("Please enter a valid Ethereum address");
+      return;
+    }
+    onAdd(input);
+    const updated = [...addresses, input];
+    setAddresses(updated);
+    localStorage.setItem(storageKey, JSON.stringify(updated));
+    setInput("");
+  };
+
+  const handleRemove = (addr: string) => {
+    onRemove(addr);
+    const updated = addresses.filter((a) => a !== addr);
+    setAddresses(updated);
+    localStorage.setItem(storageKey, JSON.stringify(updated));
+  };
 
   return (
     <div className="rounded-xl border border-border-main p-5">
@@ -42,11 +103,14 @@ function WhitelistControl({
             </svg>
           </div>
           <div>
-            <p className="text-sm font-medium text-text-main">Recipient Whitelist</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-medium text-text-main">Recipient Whitelist</p>
+              <InfoTooltip text="Only the contract owner (admin) can add or remove whitelisted addresses. When enabled, agents can only send wstETH to approved addresses — preventing unauthorized transfers." />
+            </div>
             <p className="text-xs text-text-secondary">Approved addresses only</p>
           </div>
         </div>
-        <Toggle enabled={enabled} onToggle={onToggle} />
+        <Toggle enabled={enabled} loading={loading} onToggle={onToggle} />
       </div>
       {enabled && (
         <div className="mt-4 space-y-2">
@@ -60,6 +124,7 @@ function WhitelistControl({
             />
             <button
               type="button"
+              onClick={handleAdd}
               className="cursor-pointer rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
             >
               Add
@@ -72,7 +137,7 @@ function WhitelistControl({
               {addresses.map((addr) => (
                 <li key={addr} className="flex items-center justify-between rounded-lg bg-main-bg px-3 py-2">
                   <span className="font-mono text-xs text-text-main">{addr}</span>
-                  <button type="button" className="cursor-pointer text-xs text-text-secondary transition-colors hover:text-text-main">
+                  <button type="button" onClick={() => handleRemove(addr)} className="cursor-pointer text-xs text-text-secondary transition-colors hover:text-text-main">
                     Remove
                   </button>
                 </li>
@@ -89,19 +154,27 @@ function CapControl({
   icon,
   label,
   description,
+  info,
   placeholder,
   enabled,
   value,
+  loading,
   onToggle,
+  onSave,
 }: {
   icon: React.ReactNode;
   label: string;
   description: string;
+  info: string;
   placeholder: string;
   enabled: boolean;
   value: string;
+  loading: boolean;
   onToggle: () => void;
+  onSave?: (val: string) => void;
 }) {
+  const [input, setInput] = useState(value);
+
   return (
     <div className="rounded-xl border border-border-main p-5">
       <div className="flex items-center justify-between">
@@ -110,22 +183,35 @@ function CapControl({
             {icon}
           </div>
           <div>
-            <p className="text-sm font-medium text-text-main">{label}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-medium text-text-main">{label}</p>
+              <InfoTooltip text={info} />
+            </div>
             <p className="text-xs text-text-secondary">{description}</p>
           </div>
         </div>
-        <Toggle enabled={enabled} onToggle={onToggle} />
+        <Toggle enabled={enabled} loading={loading} onToggle={onToggle} />
       </div>
       {enabled && (
         <div className="mt-4 flex items-center gap-2">
           <input
             type="number"
             step="0.0001"
-            defaultValue={value}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
             placeholder={placeholder}
             className="w-full rounded-lg border border-border-main bg-main-bg px-3 py-2 text-sm text-text-main placeholder:text-text-secondary/50 focus:border-brand focus:outline-none"
           />
           <span className="whitespace-nowrap text-sm text-text-secondary">wstETH</span>
+          {onSave && (
+            <button
+              type="button"
+              onClick={() => onSave(input)}
+              className="cursor-pointer whitespace-nowrap rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
+            >
+              Save
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -133,15 +219,101 @@ function CapControl({
 }
 
 export function PermissionPanel() {
-  const permissions = useTreasuryStore((s) => s.permissions);
-  const setPermissions = useTreasuryStore((s) => s.setPermissions);
+  const { whitelistEnabled, capEnabled, perTxCap, rateLimitEnabled, cycleInfo } = useTreasuryRead();
+  const { writeContractAsync } = useWriteContract();
+  const publicClient = usePublicClient();
+  const [txPending, setTxPending] = useState(false);
+
+  const isWhitelistOn = (whitelistEnabled.data as boolean) ?? false;
+  const isCapOn = (capEnabled.data as boolean) ?? false;
+  const isRateOn = (rateLimitEnabled.data as boolean) ?? false;
+  const capValue = perTxCap.data ? formatEther(perTxCap.data as bigint) : "";
+  const cycleData = cycleInfo.data as [bigint, bigint, bigint, bigint] | undefined;
+  const cycleLimitValue = cycleData ? formatEther(cycleData[2]) : "";
+
+  const isLoading = whitelistEnabled.isLoading || capEnabled.isLoading || rateLimitEnabled.isLoading;
+
+  const execTx = async (fn: () => Promise<`0x${string}`>, successMsg: string) => {
+    if (!publicClient) return;
+    try {
+      setTxPending(true);
+      const hash = await fn();
+      await publicClient.waitForTransactionReceipt({ hash });
+      toast.success(successMsg);
+      whitelistEnabled.refetch();
+      capEnabled.refetch();
+      perTxCap.refetch();
+      rateLimitEnabled.refetch();
+      cycleInfo.refetch();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message.split("\n")[0] : "Transaction failed");
+    } finally {
+      setTxPending(false);
+    }
+  };
 
   const toggleWhitelist = () =>
-    setPermissions({ ...permissions, whitelist: { ...permissions.whitelist, enabled: !permissions.whitelist.enabled } });
+    execTx(
+      () => writeContractAsync({ ...agentTreasuryConfig, functionName: "setWhitelistEnabled", args: [!isWhitelistOn] }),
+      isWhitelistOn ? "Whitelist disabled" : "Whitelist enabled"
+    );
+
   const toggleCap = () =>
-    setPermissions({ ...permissions, transactionCap: { ...permissions.transactionCap, enabled: !permissions.transactionCap.enabled } });
+    execTx(
+      () => writeContractAsync({ ...agentTreasuryConfig, functionName: "setCapEnabled", args: [!isCapOn] }),
+      isCapOn ? "Per-transaction cap disabled" : "Per-transaction cap enabled"
+    );
+
   const toggleRate = () =>
-    setPermissions({ ...permissions, dailyRateLimit: { ...permissions.dailyRateLimit, enabled: !permissions.dailyRateLimit.enabled } });
+    execTx(
+      () => writeContractAsync({ ...agentTreasuryConfig, functionName: "setRateLimitEnabled", args: [!isRateOn] }),
+      isRateOn ? "Rate limit disabled" : "Rate limit enabled"
+    );
+
+  const handleAddWhitelist = (addr: string) =>
+    execTx(
+      () => writeContractAsync({ ...agentTreasuryConfig, functionName: "setWhitelist", args: [addr as `0x${string}`, true] }),
+      "Address added to whitelist"
+    );
+
+  const handleRemoveWhitelist = (addr: string) =>
+    execTx(
+      () => writeContractAsync({ ...agentTreasuryConfig, functionName: "setWhitelist", args: [addr as `0x${string}`, false] }),
+      "Address removed from whitelist"
+    );
+
+  const handleSaveCap = (val: string) => {
+    if (!val || Number.parseFloat(val) <= 0) {
+      toast.error("Enter a valid cap amount");
+      return;
+    }
+    execTx(
+      () => writeContractAsync({ ...agentTreasuryConfig, functionName: "setPerTxCap", args: [parseEther(val)] }),
+      "Per-transaction cap updated"
+    );
+  };
+
+  const handleSaveCycleLimit = (val: string) => {
+    if (!val || Number.parseFloat(val) <= 0) {
+      toast.error("Enter a valid cycle limit");
+      return;
+    }
+    execTx(
+      () => writeContractAsync({ ...agentTreasuryConfig, functionName: "setCycleLimit", args: [parseEther(val)] }),
+      "Cycle limit updated"
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold text-text-main">Permission Controls</h3>
+          <p className="mt-1 text-sm text-text-secondary">Loading contract state...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -151,9 +323,11 @@ export function PermissionPanel() {
       </div>
       <div className="space-y-3">
         <WhitelistControl
-          enabled={permissions.whitelist.enabled}
-          addresses={permissions.whitelist.addresses}
+          enabled={isWhitelistOn}
+          loading={txPending}
           onToggle={toggleWhitelist}
+          onAdd={handleAddWhitelist}
+          onRemove={handleRemoveWhitelist}
         />
         <CapControl
           icon={
@@ -163,10 +337,13 @@ export function PermissionPanel() {
           }
           label="Per-Transaction Cap"
           description="Max amount per spend"
+          info="Only the contract owner (admin) can set this cap. When enabled, each agent spend transaction is limited to this maximum wstETH amount — preventing large single transfers."
           placeholder="0.01"
-          enabled={permissions.transactionCap.enabled}
-          value={permissions.transactionCap.maxAmount}
+          enabled={isCapOn}
+          value={capValue}
+          loading={txPending}
           onToggle={toggleCap}
+          onSave={handleSaveCap}
         />
         <CapControl
           icon={
@@ -174,12 +351,15 @@ export function PermissionPanel() {
               <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clipRule="evenodd" />
             </svg>
           }
-          label="Daily Rate Limit"
-          description="Max total per day"
+          label="Cycle Rate Limit"
+          description="Max total per cycle"
+          info="Only the contract owner (admin) can set this limit. When enabled, total agent spending is capped per cycle (e.g. 30 days). Resets automatically when the cycle expires."
           placeholder="0.1"
-          enabled={permissions.dailyRateLimit.enabled}
-          value={permissions.dailyRateLimit.maxPerDay}
+          enabled={isRateOn}
+          value={cycleLimitValue}
+          loading={txPending}
           onToggle={toggleRate}
+          onSave={handleSaveCycleLimit}
         />
       </div>
     </div>

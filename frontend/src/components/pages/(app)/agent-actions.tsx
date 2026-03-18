@@ -2,14 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { useTreasuryStore } from "@/stores/treasury-store";
-
-const AGENTS = [
-  { id: "parent", label: "Parent Agent", role: "Treasury Owner", budget: "1.2000" },
-  { id: "sub-a", label: "Sub-Agent A", role: "Research", budget: "0.2800" },
-  { id: "sub-b", label: "Sub-Agent B", role: "Execution", budget: "0.2900" },
-  { id: "sub-c", label: "Sub-Agent C", role: "Integration", budget: "0.2850" },
-];
+import { formatEther, parseEther } from "viem";
+import { useWriteContract, usePublicClient, useReadContract } from "wagmi";
+import { toast } from "sonner";
+import { agentTreasuryConfig } from "@/config/contracts";
+import { useTreasuryRead } from "@/hooks/use-treasury";
 
 function formatETH(value: string): string {
   return Number.parseFloat(value || "0").toFixed(4);
@@ -21,6 +18,10 @@ function formatCountdown(seconds: number): string {
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+function truncateAddress(address: string): string {
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
 function CycleCountdown({ targetTimestamp }: { targetTimestamp: number }) {
@@ -46,15 +47,83 @@ function CycleCountdown({ targetTimestamp }: { targetTimestamp: number }) {
   );
 }
 
+function SubAgentBudgetDisplay({ address }: { address: string }) {
+  const remaining = useReadContract({
+    ...agentTreasuryConfig,
+    functionName: "getSubAgentRemaining",
+    args: [address as `0x${string}`],
+  });
+
+  const val = remaining.data ? formatEther(remaining.data as bigint) : "0";
+
+  return (
+    <span className="flex items-center gap-1.5 text-lg font-semibold text-brand">
+      {formatETH(val)} wstETH
+      <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={18} height={18} />
+    </span>
+  );
+}
+
 export function AgentActions() {
-  const treasury = useTreasuryStore((s) => s.treasury);
+  const { paused, parentAgent, subAgents, availableYield, cycleInfo } = useTreasuryRead();
+  const { writeContractAsync } = useWriteContract();
+  const publicClient = usePublicClient();
+
   const [amount, setAmount] = useState("");
   const [recipient, setRecipient] = useState("");
-  const [selectedAgent, setSelectedAgent] = useState("parent");
+  const [selectedAgent, setSelectedAgent] = useState("treasury");
+  const [txPending, setTxPending] = useState(false);
 
-  const isPaused = treasury?.isPaused ?? false;
-  const nextCycle = treasury?.nextCycleTimestamp ?? Math.floor(Date.now() / 1000) + 86400;
-  const agent = AGENTS.find((a) => a.id === selectedAgent) ?? AGENTS[0];
+  const isPaused = (paused.data as boolean) ?? false;
+  const parentAddr = (parentAgent.data as string) ?? "";
+  const subAgentList = (subAgents.data as string[]) ?? [];
+  const yieldAvailable = availableYield.data ? formatEther(availableYield.data as bigint) : "0";
+  const cycleData = cycleInfo.data as [bigint, bigint, bigint, bigint] | undefined;
+  const resetAt = cycleData ? Number(cycleData[3]) : 0;
+
+  const hasParent = parentAddr && parentAddr !== "0x0000000000000000000000000000000000000000";
+
+  const agents = [
+    { id: "treasury", label: "Treasury", role: "Direct Spend", address: "" },
+    ...(hasParent ? [{ id: "parent", label: "Parent Agent", role: "Parent", address: parentAddr }] : []),
+    ...subAgentList.map((addr, i) => ({
+      id: `sub-${i}`,
+      label: `Sub-Agent ${i + 1}`,
+      role: truncateAddress(addr),
+      address: addr,
+    })),
+  ];
+
+  const selectedAgentData = agents.find((a) => a.id === selectedAgent) ?? agents[0];
+  const isTreasuryDirect = selectedAgent === "treasury";
+
+  const handleSpend = async () => {
+    if (!publicClient || !amount || Number.parseFloat(amount) <= 0 || !recipient) return;
+    if (!recipient.startsWith("0x") || recipient.length !== 42) {
+      toast.error("Please enter a valid recipient address");
+      return;
+    }
+    try {
+      setTxPending(true);
+      const hash = await writeContractAsync({
+        ...agentTreasuryConfig,
+        functionName: "spend",
+        args: [recipient as `0x${string}`, parseEther(amount)],
+      });
+      await publicClient.waitForTransactionReceipt({ hash });
+      toast.success("Spend transaction confirmed");
+      setAmount("");
+      setRecipient("");
+      availableYield.refetch();
+      cycleInfo.refetch();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message.split("\n")[0] : "Transaction failed");
+    } finally {
+      setTxPending(false);
+    }
+  };
+
+  const isLoading = paused.isLoading || subAgents.isLoading;
 
   return (
     <div className="space-y-6">
@@ -74,9 +143,10 @@ export function AgentActions() {
             id="agent-select"
             value={selectedAgent}
             onChange={(e) => setSelectedAgent(e.target.value)}
+            disabled={isLoading}
             className="w-full cursor-pointer appearance-none rounded-xl border border-border-main bg-main-bg px-4 py-3 text-sm text-text-main focus:border-brand focus:outline-none"
           >
-            {AGENTS.map((a) => (
+            {agents.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.label} ({a.role})
               </option>
@@ -86,13 +156,19 @@ export function AgentActions() {
 
         <div className="flex items-center justify-between rounded-xl bg-brand-light px-5 py-4">
           <div>
-            <span className="text-sm font-medium text-text-secondary">Remaining budget</span>
-            <p className="mt-0.5 text-xs text-text-secondary">{agent.role}</p>
+            <span className="text-sm font-medium text-text-secondary">
+              {isTreasuryDirect ? "Available yield" : "Remaining budget"}
+            </span>
+            <p className="mt-0.5 text-xs text-text-secondary">{selectedAgentData.role}</p>
           </div>
-          <span className="flex items-center gap-1.5 text-lg font-semibold text-brand">
-            {formatETH(agent.budget)} wstETH
-            <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={18} height={18} />
-          </span>
+          {isTreasuryDirect ? (
+            <span className="flex items-center gap-1.5 text-lg font-semibold text-brand">
+              {formatETH(yieldAvailable)} wstETH
+              <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" className="rounded-full" width={18} height={18} />
+            </span>
+          ) : (
+            <SubAgentBudgetDisplay address={selectedAgentData.address} />
+          )}
         </div>
 
         <div>
@@ -105,7 +181,7 @@ export function AgentActions() {
             value={recipient}
             onChange={(e) => setRecipient(e.target.value)}
             placeholder="0x..."
-            disabled={isPaused}
+            disabled={isPaused || txPending}
             className="w-full rounded-xl border border-border-main bg-main-bg px-4 py-3 font-mono text-sm text-text-main placeholder:text-text-secondary/50 focus:border-brand focus:outline-none disabled:opacity-50"
           />
         </div>
@@ -121,7 +197,7 @@ export function AgentActions() {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.0000"
-              disabled={isPaused}
+              disabled={isPaused || txPending}
               className="w-full rounded-xl border border-border-main bg-main-bg px-4 py-3 text-sm text-text-main placeholder:text-text-secondary/50 focus:border-brand focus:outline-none disabled:opacity-50"
             />
             <span className="flex items-center gap-1 whitespace-nowrap text-sm text-text-secondary">
@@ -134,13 +210,14 @@ export function AgentActions() {
 
       <button
         type="button"
-        disabled={isPaused || !amount || !recipient}
+        disabled={isPaused || !amount || !recipient || txPending}
+        onClick={handleSpend}
         className="w-full cursor-pointer rounded-xl bg-brand px-4 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
       >
-        {isPaused ? "Agent Paused" : "Trigger Spend"}
+        {isPaused ? "Agent Paused" : txPending ? "Confirming..." : "Trigger Spend"}
       </button>
 
-      <CycleCountdown targetTimestamp={nextCycle} />
+      {resetAt > 0 && <CycleCountdown targetTimestamp={resetAt} />}
     </div>
   );
 }
