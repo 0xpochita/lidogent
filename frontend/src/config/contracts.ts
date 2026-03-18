@@ -1,5 +1,5 @@
 export const AGENT_TREASURY_ADDRESS =
-  "0xf5b4B061c2A28dfF834b1C1648E0D05120529c81" as const;
+  "0x783e1512bFEa7C8B51A92cB150FEb5A04b91E9Aa" as const;
 
 export const LIDO_STETH_ADDRESS =
   "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84" as const;
@@ -291,6 +291,20 @@ export const erc20Abi = [
 ] as const;
 
 export const wstETHAbi = [
+  {
+    type: "function",
+    name: "wrap",
+    inputs: [{ name: "_stETHAmount", type: "uint256" }],
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "unwrap",
+    inputs: [{ name: "_wstETHAmount", type: "uint256" }],
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "nonpayable",
+  },
   {
     type: "function",
     name: "getStETHByWstETH",

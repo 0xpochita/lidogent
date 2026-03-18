@@ -4,7 +4,7 @@
 
 | Contract | Address | Network |
 |----------|---------|---------|
-| **AgentTreasury** | [`0xf5b4B061c2A28dfF834b1C1648E0D05120529c81`](https://etherscan.io/address/0xf5b4B061c2A28dfF834b1C1648E0D05120529c81) | Ethereum Mainnet |
+| **AgentTreasury** | [`0x783e1512bFEa7C8B51A92cB150FEb5A04b91E9Aa`](https://etherscan.io/address/0x783e1512bFEa7C8B51A92cB150FEb5A04b91E9Aa) | Ethereum Mainnet |
 
 Deployed and verified on Etherscan. Source code publicly viewable.
 

@@ -72,11 +72,11 @@ contract AgentTreasuryTest is Test {
         assertGt(treasury.principalWstETH(), before);
     }
 
-    function test_deposit_onlyOwner() public {
+    function test_deposit_anyoneCanDeposit() public {
         vm.deal(agent, 1 ether);
-        vm.expectRevert(AgentTreasury.NotOwner.selector);
         vm.prank(agent);
         treasury.depositETH{value: 1 ether}();
+        assertGt(treasury.principalWstETH(), 0);
     }
 
     // ── Withdrawal Tests ──

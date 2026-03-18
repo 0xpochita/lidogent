@@ -122,15 +122,15 @@ contract AgentTreasury is ReentrancyGuard {
     //  Deposits
     // ──────────────────────────────────────────────
 
-    /// @notice Deposit wstETH directly into treasury.
-    function depositWstETH(uint256 amount) external onlyOwner nonReentrant {
+    /// @notice Deposit wstETH directly into treasury. Anyone can deposit.
+    function depositWstETH(uint256 amount) external nonReentrant {
         if (amount == 0) revert ZeroAmount();
         wstETH.transferFrom(msg.sender, address(this), amount);
         _recordDeposit(amount);
     }
 
-    /// @notice Deposit ETH — auto-stakes via Lido then wraps to wstETH.
-    function depositETH() external payable onlyOwner nonReentrant {
+    /// @notice Deposit ETH — auto-stakes via Lido then wraps to wstETH. Anyone can deposit.
+    function depositETH() external payable nonReentrant {
         if (msg.value == 0) revert ZeroAmount();
 
         uint256 stETHReceived = lido.submit{value: msg.value}(address(0));
@@ -140,8 +140,8 @@ contract AgentTreasury is ReentrancyGuard {
         _recordDeposit(wstETHReceived);
     }
 
-    /// @notice Deposit stETH — auto-wraps to wstETH.
-    function depositStETH(uint256 stETHAmount) external onlyOwner nonReentrant {
+    /// @notice Deposit stETH — auto-wraps to wstETH. Anyone can deposit.
+    function depositStETH(uint256 stETHAmount) external nonReentrant {
         if (stETHAmount == 0) revert ZeroAmount();
 
         lido.transferFrom(msg.sender, address(this), stETHAmount);
