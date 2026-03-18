@@ -2,9 +2,126 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { HiOutlineBolt, HiOutlineCube, HiOutlineChevronRight } from "react-icons/hi2";
+import { HiOutlineBolt, HiOutlineCube, HiOutlineChevronRight, HiOutlineInformationCircle, HiOutlineXMark } from "react-icons/hi2";
+import { AnimatePresence, motion } from "framer-motion";
 
 type Mode = "stake" | "wrap";
+
+function InfoModal({ onClose }: { onClose: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md rounded-2xl border border-border-main bg-surface p-6 shadow-xl"
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-text-main">Stake & Wrap</h3>
+          <button type="button" onClick={onClose} className="cursor-pointer text-text-secondary transition-colors hover:text-text-main">
+            <HiOutlineXMark className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="mt-5 space-y-4">
+          <motion.div
+            initial={{ opacity: 0, x: -15 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="rounded-xl border border-border-main p-4"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand text-white">
+                <HiOutlineBolt className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-text-main">Stake ETH</p>
+                <p className="text-xs text-text-secondary">Convert ETH to stETH via Lido</p>
+              </div>
+            </div>
+            <ul className="mt-3 space-y-1.5">
+              <li className="flex items-center gap-2 text-xs text-text-secondary">
+                <span className="text-brand">1.</span>
+                <span>Send</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" fill="currentColor" className="h-3 w-3 text-text-main"><path d="M311.9 260.8L160 353.6 8 260.8 160 0l151.9 260.8zM160 383.4L8 290.6 160 512l152-221.4-152 92.8z" /></svg>
+                <span>ETH to Lido staking contract</span>
+              </li>
+              <li className="flex items-center gap-2 text-xs text-text-secondary">
+                <span className="text-brand">2.</span>
+                <span>Receive</span>
+                <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={12} height={12} />
+                <span>stETH (liquid staking token)</span>
+              </li>
+              <li className="flex items-center gap-2 text-xs text-text-secondary">
+                <span className="text-brand">3.</span>
+                <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={12} height={12} />
+                <span>stETH earns ~3.5% APY from Ethereum staking rewards</span>
+              </li>
+            </ul>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: -15 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="rounded-xl border border-border-main p-4"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand text-white">
+                <HiOutlineCube className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-text-main">Wrap stETH</p>
+                <p className="text-xs text-text-secondary">Wrap stETH to wstETH and lock in treasury</p>
+              </div>
+            </div>
+            <ul className="mt-3 space-y-1.5">
+              <li className="flex items-center gap-2 text-xs text-text-secondary">
+                <span className="text-brand">1.</span>
+                <span>Wrap</span>
+                <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={12} height={12} />
+                <span>stETH to</span>
+                <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" width={12} height={12} className="rounded-full" />
+                <span>wstETH</span>
+              </li>
+              <li className="flex items-center gap-2 text-xs text-text-secondary">
+                <span className="text-brand">2.</span>
+                <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" width={12} height={12} className="rounded-full" />
+                <span>wstETH is locked as principal in the Agent Treasury</span>
+              </li>
+              <li className="flex items-center gap-2 text-xs text-text-secondary">
+                <span className="text-brand">3.</span>
+                <span>Yield accrues over time and becomes the agent spending budget</span>
+              </li>
+              <li className="flex items-center gap-2 text-xs text-text-secondary">
+                <span className="text-brand">4.</span>
+                <span>Principal is structurally inaccessible to the agent</span>
+              </li>
+            </ul>
+          </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-center text-[11px] text-text-secondary"
+          >
+            Stake first to get stETH, then wrap to fund your agent treasury.
+          </motion.p>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 function StakeForm() {
   const [amount, setAmount] = useState("");
@@ -176,6 +293,7 @@ function WrapForm() {
 
 export function StakePanel() {
   const [mode, setMode] = useState<Mode>("stake");
+  const [showInfo, setShowInfo] = useState(false);
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[420px_1fr]">
@@ -207,10 +325,8 @@ export function StakePanel() {
               Wrap
             </button>
           </div>
-          <button type="button" className="cursor-pointer text-text-secondary transition-colors hover:text-text-main">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
-              <path fillRule="evenodd" d="M7.84 1.804A1 1 0 0 1 8.82 1h2.36a1 1 0 0 1 .98.804l.331 1.652a6.993 6.993 0 0 1 1.929 1.115l1.598-.54a1 1 0 0 1 1.186.447l1.18 2.044a1 1 0 0 1-.205 1.251l-1.267 1.113a7.047 7.047 0 0 1 0 2.228l1.267 1.113a1 1 0 0 1 .206 1.25l-1.18 2.045a1 1 0 0 1-1.187.447l-1.598-.54a6.993 6.993 0 0 1-1.929 1.115l-.33 1.652a1 1 0 0 1-.98.804H8.82a1 1 0 0 1-.98-.804l-.331-1.652a6.993 6.993 0 0 1-1.929-1.115l-1.598.54a1 1 0 0 1-1.186-.447l-1.18-2.044a1 1 0 0 1 .205-1.251l1.267-1.114a7.05 7.05 0 0 1 0-2.227L1.821 7.773a1 1 0 0 1-.206-1.25l1.18-2.045a1 1 0 0 1 1.187-.447l1.598.54A6.993 6.993 0 0 1 7.51 3.456l.33-1.652ZM10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
-            </svg>
+          <button type="button" onClick={() => setShowInfo(true)} className="cursor-pointer text-text-secondary transition-colors hover:text-brand">
+            <HiOutlineInformationCircle className="h-5 w-5" />
           </button>
         </div>
 
@@ -220,7 +336,11 @@ export function StakePanel() {
       <div className="rounded-2xl border border-border-main bg-surface">
         <div className="flex items-center gap-2 border-b border-border-main px-6 py-4">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-light">
-            <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" width={20} height={20} className="rounded-full" />
+            {mode === "stake" ? (
+              <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={20} height={20} />
+            ) : (
+              <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" width={20} height={20} className="rounded-full" />
+            )}
           </div>
           <div className="-ml-5 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" fill="currentColor" className="h-3 w-3 text-text-main">
@@ -228,7 +348,7 @@ export function StakePanel() {
             </svg>
           </div>
           <span className="ml-1 text-lg font-semibold text-text-main">
-            {mode === "stake" ? "ETH / wstETH" : "stETH / wstETH"}
+            {mode === "stake" ? "ETH / stETH" : "stETH / wstETH"}
           </span>
         </div>
 
@@ -263,30 +383,17 @@ export function StakePanel() {
                     <span className="text-sm text-text-main">Stake ETH via Lido</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="text-xs text-text-secondary">Receive stETH</span>
-                    <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={14} height={14} />
+                    <span className="text-xs text-text-secondary">Send ETH to Lido</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between rounded-xl bg-main-bg px-4 py-3">
                   <div className="flex items-center gap-2">
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">2</span>
-                    <span className="text-sm text-text-main">Auto-wrap to wstETH</span>
+                    <span className="text-sm text-text-main">Receive stETH</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="text-xs text-text-secondary">Non-rebasing</span>
-                    <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" width={14} height={14} className="rounded-full" />
-                  </div>
-                </div>
-                <div className="flex items-center justify-between rounded-xl bg-main-bg px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">3</span>
-                    <span className="text-sm text-text-main">Lock in Treasury</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5 text-brand">
-                      <path fillRule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-xs font-medium text-brand">Principal locked</span>
+                    <span className="text-xs text-text-secondary">~3.5% APY</span>
+                    <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={14} height={14} />
                   </div>
                 </div>
               </>
@@ -328,6 +435,10 @@ export function StakePanel() {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showInfo && <InfoModal onClose={() => setShowInfo(false)} />}
+      </AnimatePresence>
     </div>
   );
 }
