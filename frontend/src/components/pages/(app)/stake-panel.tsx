@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { LIDO_STETH_ADDRESS, WSTETH_ADDRESS, AGENT_TREASURY_ADDRESS, erc20Abi, wstETHAbi, agentTreasuryConfig } from "@/config/contracts";
 import { useStETHBalance } from "@/hooks/use-treasury";
 import { useStEthPerToken } from "@/hooks/use-lido";
+import { useLidoApr } from "@/hooks/use-lido-apr";
 import { InfoModal, StakeSuccessPopup, WrapSuccessPopup, WrapStepperPopup, type WrapStatus } from "./stake-modals";
 
 type Mode = "stake" | "wrap";
@@ -238,6 +239,8 @@ function StepRow({ num, label, right }: { num: number; label: string; right: Rea
 export function StakePanel() {
   const [mode, setMode] = useState<Mode>("stake");
   const [showInfo, setShowInfo] = useState(false);
+  const apr = useLidoApr();
+  const aprLabel = apr !== null ? `${apr.toFixed(2)}% APR` : "~3% APR";
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[420px_1fr]">
@@ -282,7 +285,7 @@ export function StakePanel() {
             {mode === "stake" ? (
               <>
                 <StepRow num={1} label="Stake ETH via Lido" right={<EtherscanLink address={LIDO_STETH_ADDRESS} label="0xae7a...fE84" />} />
-                <StepRow num={2} label="Receive stETH" right={<div className="flex items-center gap-1"><span className="text-xs text-text-secondary">~3.5% APY</span><Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={14} height={14} /></div>} />
+                <StepRow num={2} label="Receive stETH" right={<div className="flex items-center gap-1"><span className="text-xs text-text-secondary">{aprLabel}</span><Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={14} height={14} /></div>} />
               </>
             ) : (
               <>
@@ -298,7 +301,7 @@ export function StakePanel() {
                   <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" width={14} height={14} className="rounded-full" />
                   <span className="text-xs font-medium text-text-main">Lido Staking</span>
                 </div>
-                <p className="mt-0.5 text-center text-[10px] text-text-secondary">~3.5% APY</p>
+                <p className="mt-0.5 text-center text-[10px] text-text-secondary">{aprLabel}</p>
               </div>
             </div>
           </div>

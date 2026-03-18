@@ -5,6 +5,7 @@ import Image from "next/image";
 import { PiPlantFill } from "react-icons/pi";
 import { formatEther } from "viem";
 import { useStETHBalance, useTreasuryRead } from "@/hooks/use-treasury";
+import { useLidoApr } from "@/hooks/use-lido-apr";
 
 function formatETH(value: string): string {
   const num = Number.parseFloat(value || "0");
@@ -32,24 +33,32 @@ function YieldProgress({ rate }: { rate: number }) {
   );
 }
 
-function LiveYield() {
-  const [tick, setTick] = useState(0);
+function LiveYield({ principalWstETH }: { principalWstETH: number }) {
+  const [accrued, setAccrued] = useState(0);
+  const apr = useLidoApr();
+
+  const yieldPerSecond = apr && principalWstETH > 0
+    ? (principalWstETH * (apr / 100)) / (365 * 24 * 3600)
+    : 0;
 
   useEffect(() => {
-    const interval = setInterval(() => setTick((t) => t + 1), 3000);
+    if (yieldPerSecond <= 0) return;
+    const interval = setInterval(() => setAccrued((prev) => prev + yieldPerSecond * 3), 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [yieldPerSecond]);
 
-  const micro = (tick * 0.000001).toFixed(6);
+  const aprLabel = apr !== null ? `${apr.toFixed(2)}%` : "...";
+  const yieldDisplay = accrued > 0 ? `+${accrued.toFixed(10)}` : "+0.0000000000";
 
   return (
-    <div className="mt-2 flex items-center gap-2">
-      <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-semibold text-white">
-        ~3.5% APY
-      </span>
+    <div className="mt-2 flex items-center justify-between rounded-lg bg-white/10 px-3 py-1.5">
       <div className="flex items-center gap-1.5">
-        <PiPlantFill className="h-3.5 w-3.5 text-green-400" />
-        <span className="font-mono text-[10px] text-white/60">+{micro} wstETH</span>
+        <span className="rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold text-white">{aprLabel}</span>
+        <span className="text-[10px] text-white/50">APR</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <PiPlantFill className="h-3 w-3 text-green-400" />
+        <span className="font-mono text-[10px] text-white/60">{yieldDisplay}</span>
       </div>
     </div>
   );
@@ -76,7 +85,7 @@ export function HeroBanner() {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-brand/50 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-brand/80 backdrop-blur-sm" />
       </div>
 
       <div className="relative z-10 px-8 py-10">
@@ -118,7 +127,7 @@ export function HeroBanner() {
                 <span className="text-xs font-medium text-white/80">wstETH</span>
               </div>
             </div>
-            <LiveYield />
+            <LiveYield principalWstETH={Number(principal)} />
             <YieldProgress rate={yieldRate} />
           </div>
 
