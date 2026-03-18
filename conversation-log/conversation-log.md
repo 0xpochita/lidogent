@@ -286,6 +286,55 @@
 
 ---
 
+## Session 20 — Onchain ETH Price via Chainlink (2026-03-18)
+
+- Fetch ETH/USD from Chainlink Price Feed (0x5f4eC3Df...onchain)
+- useEthPrice() hook reads latestRoundData() from aggregator
+- Replace all ~$ 0.00 with real USD values in Stake and Wrap forms
+
+### Commit: `c0eae9b` — feat: onchain ETH price via Chainlink
+
+---
+
+## Session 21 — Full Dashboard SC Integration (2026-03-18)
+
+- Dashboard Configuration fully wired to smart contract (no mock data)
+- Permission panel: real whitelist/cap/rate-limit reads and writes
+- Agent hierarchy: real parent/sub-agent data from contract
+- Budget & Cycle: real getCycleInfo, yield, pause/unpause, withdraw
+- Spend Log: removed all mock data, shows real totalSpentWstETH
+- Info tooltips on all permission controls (admin-only notice)
+- Set Parent Agent form with whitelist dropdown from localStorage
+- Add Sub-Agent form with whitelist dropdown + budget cap input
+- Whitelist addresses persist to localStorage
+
+### Commit: `bb3e0e6` — feat: full SC integration, info tooltips, set agent/sub-agent forms
+
+---
+
+## Session 22 — Live AI Chat, Activity Logging (2026-03-18)
+
+- AI chat fully working via OpenRouter (Gemini Flash free tier for demo)
+- Chat activity saved to localStorage after each AI response
+- Activity Feed reads from localStorage, auto-refreshes every 3s
+- Spend Log reads from localStorage with model filter
+- Removed Quick Actions, SpendingSummary now full-width
+- All model costs set to 0.0000 for testing
+- Chat empty state with react-icons chat bubble centered
+- Lido logo added to exchange rate display
+
+### Commit: `758dff7` — feat: live AI chat, activity logging, layout improvements
+
+---
+
+## Session 23 — UI Polish (2026-03-18)
+
+- Replaced letter placeholders with HiOutlineWallet icon in Active Services
+
+### Commit: `c1c5ee7` — style: replace letter icons with react-icons wallet
+
+---
+
 ## Deployed Contracts
 
 | Contract | Address | Status |
