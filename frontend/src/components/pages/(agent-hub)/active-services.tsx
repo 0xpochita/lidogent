@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { HiOutlineWallet } from "react-icons/hi2";
 
 const AVAILABLE_SERVICES = [
   {
@@ -208,9 +209,7 @@ export function ActiveServices() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
                       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-light">
-                        <span className="text-xs font-bold text-brand">
-                          {entry.address.slice(2, 4).toUpperCase()}
-                        </span>
+                        <HiOutlineWallet className="h-4 w-4 text-brand" />
                       </div>
                       <span className="font-mono text-sm text-text-main">
                         {truncateAddress(entry.address)}
