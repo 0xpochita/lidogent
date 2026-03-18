@@ -23,18 +23,6 @@ function ChainIcon({ chainId }: { chainId: number }) {
     );
   }
 
-  if (chainId === optimism.id) {
-    return <div className={`${size} rounded-full bg-red-500`} />;
-  }
-
-  if (chainId === unichain.id) {
-    return <div className={`${size} rounded-full bg-pink-500`} />;
-  }
-
-  if (chainId === soneium.id) {
-    return <div className={`${size} rounded-full bg-purple-500`} />;
-  }
-
   return <div className={`${size} rounded-full bg-gray-400`} />;
 }
 

@@ -73,8 +73,9 @@ contract AgentTreasuryTest is Test {
     }
 
     function test_deposit_onlyOwner() public {
-        vm.prank(agent);
+        vm.deal(agent, 1 ether);
         vm.expectRevert(AgentTreasury.NotOwner.selector);
+        vm.prank(agent);
         treasury.depositETH{value: 1 ether}();
     }
 
