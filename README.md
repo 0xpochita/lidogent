@@ -81,6 +81,13 @@ Track all AI chat requests and agent spending in real-time. Shows model used, me
   <img src="./frontend/public/Assets/Images/Screenshoot/activity-feed.webp" width="800" alt="Activity Feed">
 </div>
 
+### Agent CLI — Yield-Verified AI Spend
+Interactive CLI agent reads treasury state from smart contract, verifies yield onchain before each AI request, and shows payment receipt. Principal Touched: NEVER.
+
+<div align="center">
+  <img src="./frontend/public/Assets/Images/Screenshoot/ai-server-side.webp" width="800" alt="Agent CLI Demo">
+</div>
+
 ---
 
 ## Key Features
