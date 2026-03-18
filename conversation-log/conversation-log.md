@@ -335,6 +335,16 @@
 
 ---
 
+## Session 24 — SKILL.md & Contribution Breakdown (2026-03-18)
+
+- Created skills/SKILL.md — agent skill documentation with Lido integration details
+- Created conversation-log/contribution-breakdown.md — Human vs Agent contributions
+- Added Lido resources: stETH integration guide, deployed contracts, Lido JS SDK
+
+### Commit: `b52486e` — docs: add SKILL.md and contribution breakdown
+
+---
+
 ## Deployed Contracts
 
 | Contract | Address | Status |

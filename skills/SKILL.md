@@ -157,8 +157,12 @@ API endpoint: `POST /api/chat`
 
 ## Resources
 
-- [Lido stETH Integration Guide](https://docs.lido.fi/guides/steth-integration-guide)
+### Lido Finance
+- [stETH Integration Guide](https://docs.lido.fi/guides/steth-integration-guide) — rebasing drift is the key section
 - [wstETH Contract Docs](https://docs.lido.fi/contracts/wsteth)
 - [Lido Deployed Contracts](https://docs.lido.fi/deployed-contracts)
+- [Lido JS SDK](https://github.com/lidofinance/lido-ethereum-sdk)
+
+### Lidogent
 - [AgentTreasury on Etherscan](https://etherscan.io/address/0x783e1512bFEa7C8B51A92cB150FEb5A04b91E9Aa)
 - [GitHub Repository](https://github.com/0xpochita/lidogent)
