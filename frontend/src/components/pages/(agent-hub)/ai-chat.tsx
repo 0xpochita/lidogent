@@ -23,6 +23,7 @@ interface Message {
   content: string;
   model?: string;
   cost?: string;
+  txHash?: string;
   timestamp: number;
 }
 
@@ -33,30 +34,32 @@ interface AgentOption {
   isParent: boolean;
 }
 
+const COST_PER_REQUEST = "0.0000000001";
+
 const MODELS = [
   {
     id: "claude",
     name: "Claude",
     logo: "/Assets/Images/Logo/claude-logo.png",
-    costPerReq: "0.0000",
+    costPerReq: COST_PER_REQUEST,
   },
   {
     id: "chatgpt",
     name: "ChatGPT",
     logo: "/Assets/Images/Logo/chatgpt-logo.webp",
-    costPerReq: "0.0000",
+    costPerReq: COST_PER_REQUEST,
   },
   {
     id: "gemini",
     name: "Gemini",
     logo: "/Assets/Images/Logo/gemini-logo.jpeg",
-    costPerReq: "0.0000",
+    costPerReq: COST_PER_REQUEST,
   },
   {
     id: "perplexity",
     name: "Perplexity",
     logo: "/Assets/Images/Logo/perplexity-logo.png",
-    costPerReq: "0.0000",
+    costPerReq: COST_PER_REQUEST,
   },
 ];
 
@@ -333,30 +336,47 @@ export function AiChat() {
 
       const data = await res.json();
 
+      const onchainSpend = data.onchainSpend as {
+        amount: string;
+        ledgerId: string;
+        verified: boolean;
+      } | null;
+
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
         content: data.content,
         model: data.model,
-        cost: currentModel.costPerReq,
+        cost: onchainSpend?.amount ?? currentModel.costPerReq,
+        txHash: onchainSpend?.verified ? onchainSpend.ledgerId : undefined,
         timestamp: Date.now(),
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+
+      if (onchainSpend?.verified) {
+        toast.success("Yield verified onchain — payment deducted");
+      }
 
       const activity = {
         id: assistantMessage.id,
         type: "chat",
         model: selectedModel,
         modelName: currentModel.name,
-        cost: currentModel.costPerReq,
+        cost: onchainSpend?.amount ?? currentModel.costPerReq,
+        txHash: onchainSpend?.verified ? onchainSpend.ledgerId : undefined,
         timestamp: Date.now(),
         preview: trimmed.slice(0, 60),
       };
       try {
-        const stored = JSON.parse(localStorage.getItem("lidogent-activity") || "[]");
+        const stored = JSON.parse(
+          localStorage.getItem("lidogent-activity") || "[]",
+        );
         stored.unshift(activity);
-        localStorage.setItem("lidogent-activity", JSON.stringify(stored.slice(0, 50)));
+        localStorage.setItem(
+          "lidogent-activity",
+          JSON.stringify(stored.slice(0, 50)),
+        );
       } catch {}
     } catch (err) {
       const message =
@@ -489,8 +509,19 @@ export function AiChat() {
                     <span
                       className={`text-[10px] ${msg.role === "user" ? "text-white/60" : "text-text-secondary"}`}
                     >
-                      {msg.cost} wstETH via x402
+                      {msg.cost} wstETH
                     </span>
+                    {msg.txHash ? (
+                      <span className="rounded-full bg-brand-light px-1.5 py-0.5 text-[9px] font-semibold text-brand">
+                        yield verified
+                      </span>
+                    ) : (
+                      <span
+                        className={`text-[10px] ${msg.role === "user" ? "text-white/60" : "text-text-secondary"}`}
+                      >
+                        (offchain)
+                      </span>
+                    )}
                   </div>
                 )}
               </div>

@@ -394,6 +394,53 @@
 
 ---
 
+## Session 31 — Agent Onchain Spend & CLI Demo (2026-03-18)
+
+### Human-Agent Collaboration
+- **Human:** Identified that AI Chat was only calling OpenRouter API without any onchain spend
+- **Agent:** Built server-side agent spend system with yield verification
+- **Human:** Raised concern about gas fees on mainnet for every request
+- **Agent:** Implemented hybrid approach — onchain yield read (free) + offchain accounting
+- **Human:** Requested CLI demo scripts for video demonstration
+- **Agent:** Built two CLI scripts:
+
+### What Was Built
+
+#### `scripts/agent-demo.ts` — Interactive Agent CLI
+- Reads treasury state from smart contract (principal, yield, permissions)
+- Chats with AI (OpenRouter) — each request verified against onchain yield
+- Interactive mode with `/status`, `/ledger`, `/quit` commands
+- Shows APPROVED/DENIED based on real yield balance
+- Payment receipt with "Principal Touched: NEVER" confirmation
+
+#### `scripts/agent-spend.ts` — Real Onchain Spend
+- Agent wallet calls `spend()` on AgentTreasury contract
+- Pre-spend check: reads yield, principal, agent config from contract
+- Executes transaction, waits for confirmation
+- Post-spend verification: shows updated totalSpentWstETH, unchanged principal
+- Outputs Etherscan link for proof
+
+#### `/api/chat` — Server-Side Yield Verification
+- Every AI chat request reads `getAvailableYield()` onchain (free, no gas)
+- Tracks spending in offchain ledger with pending settlement
+- Returns 402 if insufficient yield
+- Refunds ledger if AI provider fails
+- GET endpoint exposes ledger status
+
+#### AI Chat Component Updates
+- Shows "yield verified" badge on each AI response
+- Toast notification on successful yield verification
+- Activity feed shows verified status per request
+- Cost per request: configurable via COST_PER_REQUEST env var
+
+### Key Decisions
+1. Hybrid onchain/offchain approach: yield verified from contract every request, settlement batched
+2. Two separate CLI scripts: demo (no gas) and spend (real tx)
+3. Agent wallet configurable via AGENT_PRIVATE_KEY env var
+4. Cost per request default: 0.0000000001 wstETH (configurable)
+
+---
+
 ## Deployed Contracts
 
 | Contract | Address | Status |

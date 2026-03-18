@@ -9,6 +9,7 @@ interface Activity {
   model: string;
   modelName: string;
   cost: string;
+  txHash?: string;
   timestamp: number;
   preview: string;
 }
@@ -67,9 +68,23 @@ export function ActivityFeed() {
               </div>
               <div className="shrink-0 text-right">
                 <p className="flex items-center gap-1 text-xs font-medium text-text-main">
-                  {a.cost} <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" width={10} height={10} className="rounded-full" />
+                  {a.cost}
+                  <Image
+                    src="/Assets/Images/Logo/wstETH-logo.png"
+                    alt="wstETH"
+                    width={10}
+                    height={10}
+                    className="rounded-full"
+                  />
                 </p>
-                <p className="text-[10px] text-text-secondary">{formatTime(a.timestamp)}</p>
+                <p className="text-[10px] text-text-secondary">
+                  {formatTime(a.timestamp)}
+                </p>
+                {a.txHash && (
+                  <span className="rounded-full bg-brand-light px-1.5 py-0.5 text-[9px] font-semibold text-brand">
+                    verified
+                  </span>
+                )}
               </div>
             </div>
           ))}

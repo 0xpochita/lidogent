@@ -188,13 +188,28 @@ Human deposits ETH
 
 ---
 
+## Agent CLI Scripts
+
+### `scripts/agent-demo.ts`
+Interactive CLI agent that reads treasury state from the smart contract, verifies yield onchain before each AI request, and tracks spending in a local ledger. Commands: `/status`, `/ledger`, `/quit`.
+
+### `scripts/agent-spend.ts`
+Onchain spend script that calls `spend()` on AgentTreasury from the agent wallet. Produces a real Etherscan transaction proving yield was spent without touching principal.
+
+### Server-Side Yield Verification (`/api/chat`)
+Every AI chat request reads `getAvailableYield()` from the smart contract (free, no gas). If yield is insufficient, returns HTTP 402. Tracks pending settlements in an offchain ledger.
+
+---
+
 ## Key Differentiators
 
 1. **Principal safety** — Structurally locked, not just access-controlled
 2. **Yield-only spending** — Agent budget comes from staking rewards, not deposits
 3. **wstETH-native** — Non-rebasing token for cleaner yield accounting
 4. **Multi-agent hierarchy** — Parent allocates budgets to specialized sub-agents
-5. **Pay-per-request** — No subscriptions, no prepaid credits; x402 micropayments
+5. **Pay-per-request** — No subscriptions, no prepaid credits; yield-verified micropayments
 6. **Onchain enforcement** — Permissions enforced at smart contract level
 7. **Real AI integration** — Claude, ChatGPT, Gemini, Perplexity with actual logos and pricing
+8. **CLI agent demo** — Interactive terminal agent proving yield-only spending end-to-end
+9. **Hybrid settlement** — Onchain yield verification per request, batched onchain settlement
 8. **Dual-mode staking** — Stake ETH or wrap existing stETH directly to treasury

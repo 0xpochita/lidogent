@@ -143,6 +143,9 @@ The Lidogent protocol integrates directly with Lido Finance contracts on Ethereu
 | **Frontend** | [`frontend/src/components/pages/(app)/stake-panel.tsx`](./frontend/src/components/pages/(app)/stake-panel.tsx) | Stake form calls `Lido.submit()` directly. Wrap form calls `wstETH.wrap()` then `AgentTreasury.depositWstETH()`. |
 | **Frontend** | [`frontend/src/components/pages/(app)/hero-banner.tsx`](./frontend/src/components/pages/(app)/hero-banner.tsx) | Treasury Overview reads `principalWstETH`, `getAvailableYield()`, `totalSpentWstETH` from contract. Live yield calculated from principal × APR. |
 | **Skill** | [`skills/SKILL.md`](./skills/SKILL.md) | AI agent skill documentation — contract addresses, yield mechanics, spending rules, deposit flows. |
+| **Agent CLI** | [`frontend/scripts/agent-demo.ts`](./frontend/scripts/agent-demo.ts) | Interactive CLI agent — reads yield onchain, chats with AI, verifies budget from contract per request. |
+| **Agent CLI** | [`frontend/scripts/agent-spend.ts`](./frontend/scripts/agent-spend.ts) | Onchain spend script — agent calls `spend()` on AgentTreasury, produces real Etherscan transaction. |
+| **Frontend** | [`frontend/src/app/api/chat/route.ts`](./frontend/src/app/api/chat/route.ts) | Chat API with server-side yield verification — reads `getAvailableYield()` onchain before serving AI requests. |
 
 ---
 
@@ -240,6 +243,61 @@ forge test --fork-url https://eth.drpc.org -v
 
 ---
 
+## Agent CLI Demo
+
+Two CLI scripts demonstrate the agent paying for AI services from yield without touching principal.
+
+### `agent-demo.ts` — Interactive AI Chat (yield-verified)
+
+Agent reads yield onchain (free, no gas), verifies budget, then serves AI requests.
+
+```bash
+cd frontend
+set -a && source .env.local && set +a
+
+# Interactive mode — chat with AI, check status, view ledger
+npx tsx scripts/agent-demo.ts
+
+# Single chat
+npx tsx scripts/agent-demo.ts --chat "What is Lido stETH?"
+
+# Treasury status only
+npx tsx scripts/agent-demo.ts --status
+```
+
+**Commands in interactive mode:**
+- `/status` — Read treasury state from smart contract
+- `/ledger` — View spending ledger
+- `/quit` — Exit with session summary
+
+### `agent-spend.ts` — Real Onchain Spend
+
+Agent calls `spend()` on AgentTreasury contract — real transaction on Etherscan.
+
+```bash
+cd frontend
+set -a && source .env.local && set +a
+
+# Default amount (0.0000000001 wstETH)
+npx tsx scripts/agent-spend.ts
+
+# Custom amount
+npx tsx scripts/agent-spend.ts 0.0000000002
+```
+
+**Requires:** Agent wallet funded with ETH for gas (~0.005 ETH).
+
+### Demo Flow
+
+```
+1. agent-demo.ts --status     → Show principal locked, yield available
+2. agent-demo.ts              → Chat with AI, each request yield-verified
+3. agent-spend.ts             → Real onchain spend() → Etherscan tx
+4. agent-demo.ts --status     → Show totalSpentWstETH increased, principal unchanged
+```
+
+---
+
 ## Getting Started
 
 ### Prerequisites
@@ -254,6 +312,7 @@ forge test --fork-url https://eth.drpc.org -v
 cd frontend
 cp .env.example .env.local
 # Fill in NEXT_PUBLIC_WC_PROJECT_ID, RPC_URL, OPENROUTER_API_KEY
+# For agent: AGENT_PRIVATE_KEY, SERVICE_RECIPIENT, COST_PER_REQUEST
 pnpm install
 pnpm dev
 ```
