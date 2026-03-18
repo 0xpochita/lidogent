@@ -11,6 +11,7 @@ import { LIDO_STETH_ADDRESS, WSTETH_ADDRESS, AGENT_TREASURY_ADDRESS, erc20Abi, w
 import { useStETHBalance } from "@/hooks/use-treasury";
 import { useStEthPerToken } from "@/hooks/use-lido";
 import { useLidoApr } from "@/hooks/use-lido-apr";
+import { useEthPrice } from "@/hooks/use-eth-price";
 import { InfoModal, StakeSuccessPopup, WrapSuccessPopup, WrapStepperPopup, type WrapStatus } from "./stake-modals";
 
 type Mode = "stake" | "wrap";
@@ -26,11 +27,18 @@ function EtherscanLink({ address, label }: { address: string; label: string }) {
   );
 }
 
+function formatUsd(ethAmount: string, ethPrice: number | null): string {
+  if (!ethPrice) return "~$ ...";
+  const val = Number.parseFloat(ethAmount || "0") * ethPrice;
+  return val < 0.01 ? `~$ ${val.toFixed(4)}` : `~$ ${val.toFixed(2)}`;
+}
+
 function StakeForm() {
   const [amount, setAmount] = useState("");
   const [status, setStatus] = useState<"idle" | "pending" | "confirming">("idle");
   const [successData, setSuccessData] = useState<{ ethAmount: string; stETHAmount: string; txHash: string } | null>(null);
   const { isConnected } = useAccount();
+  const ethPrice = useEthPrice();
   const { data: ethBalance } = useBalance({ address: useAccount().address ?? undefined });
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
@@ -71,7 +79,7 @@ function StakeForm() {
           </div>
         </div>
         <div className="mt-2 flex items-center justify-between text-xs text-text-secondary">
-          <span>~$ 0.00</span>
+          <span>{formatUsd(amount, ethPrice)}</span>
           <div className="flex items-center gap-2">
             <span>{balFormatted}</span>
             <button type="button" onClick={handleMax} className="cursor-pointer font-semibold text-brand hover:text-brand-hover">MAX</button>
@@ -90,7 +98,7 @@ function StakeForm() {
           </div>
         </div>
         <div className="mt-2 flex items-center justify-between text-xs text-text-secondary">
-          <span>~$ 0.00</span>
+          <span>{formatUsd(stETHOut, ethPrice)}</span>
           <a href={`https://etherscan.io/address/${LIDO_STETH_ADDRESS}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-brand hover:text-brand-hover">Lido: 0xae7a...fE84 <HiOutlineArrowTopRightOnSquare className="h-3 w-3" /></a>
         </div>
       </div>
@@ -115,6 +123,7 @@ function WrapForm() {
   const [amount, setAmount] = useState("");
   const [status, setStatus] = useState<WrapStatus>("idle");
   const [showStepper, setShowStepper] = useState(false);
+  const ethPrice = useEthPrice();
   const [successData, setSuccessData] = useState<{ stETHAmount: string; wstETHAmount: string; txHash: string } | null>(null);
   const { isConnected } = useAccount();
   const { balance: stETHBal } = useStETHBalance();
@@ -173,7 +182,7 @@ function WrapForm() {
           </div>
         </div>
         <div className="mt-2 flex items-center justify-between text-xs text-text-secondary">
-          <span>~$ 0.00</span>
+          <span>{formatUsd(amount, ethPrice)}</span>
           <div className="flex items-center gap-2">
             <span>{balFormatted}</span>
             <button type="button" onClick={handleMax} className="cursor-pointer font-semibold text-brand hover:text-brand-hover">MAX</button>
@@ -199,7 +208,7 @@ function WrapForm() {
           </div>
         </div>
         <div className="mt-2 flex items-center justify-between text-xs text-text-secondary">
-          <span>~$ 0.00</span>
+          <span>{formatUsd(wstETHOut, ethPrice ? ethPrice * rate : null)}</span>
           <span>Locked as principal in treasury</span>
         </div>
       </div>

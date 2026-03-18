@@ -270,6 +270,22 @@
 
 ---
 
+## Session 19 — Real Lido APR & Live Yield (2026-03-18)
+
+### Human-Agent Collaboration
+- **Human:** Asked if real APY data can be fetched from Lido Finance
+- **Agent:** Found Lido API: `eth-api.lido.fi/v1/protocol/steth/apr/last` — current APR: 2.41%
+- Built `/api/lido-apr` proxy with 5-minute cache + `useLidoApr()` hook
+- Replaced all mock ~3.5% APY with real data
+- **Human:** Requested real yield calculation instead of mock counter
+- **Agent:** LiveYield now calculates `yieldPerSecond = principal * (APR/100) / secondsPerYear`
+- **Human:** Asked when yield actually appears
+- **Agent:** Explained yield comes from stEthPerToken() increase via Lido oracle rebase (~1x/day)
+
+### Commit: `9c34806` — feat: real Lido APR, live yield calculation, layout polish
+
+---
+
 ## Deployed Contracts
 
 | Contract | Address | Status |
