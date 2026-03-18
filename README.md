@@ -83,6 +83,29 @@ Human deposits ETH
 
 ---
 
+## Lido Finance Architecture Integration
+
+The Lidogent protocol integrates directly with Lido Finance contracts on Ethereum Mainnet. Here are the core files composing this integration:
+
+| Component Level | File Name | Description |
+|-----------------|-----------|-------------|
+| **Smart Contract** | [`contracts/src/AgentTreasury.sol`](./contracts/src/AgentTreasury.sol) | Main treasury contract. Calls Lido `submit()` for ETH staking, `wstETH.wrap()` for wrapping, and tracks yield via `getStETHByWstETH()`. |
+| **Smart Contract** | [`contracts/src/interfaces/IWstETH.sol`](./contracts/src/interfaces/IWstETH.sol) | Interface for Lido wstETH contract — `wrap()`, `unwrap()`, `getStETHByWstETH()`, `stEthPerToken()`. |
+| **Smart Contract** | [`contracts/src/interfaces/ILido.sol`](./contracts/src/interfaces/ILido.sol) | Interface for Lido stETH contract — `submit()` to stake ETH and receive stETH. |
+| **Smart Contract** | [`contracts/script/Deploy.s.sol`](./contracts/script/Deploy.s.sol) | Deployment script targeting Ethereum Mainnet with real Lido contract addresses. |
+| **Smart Contract** | [`contracts/test/AgentTreasury.t.sol`](./contracts/test/AgentTreasury.t.sol) | 30 fork tests against real Lido stETH and wstETH on Ethereum Mainnet. |
+| **Frontend** | [`frontend/src/config/contracts.ts`](./frontend/src/config/contracts.ts) | ABI definitions for AgentTreasury, wstETH (`wrap`, `stEthPerToken`), and ERC20 (`approve`, `balanceOf`). |
+| **Frontend** | [`frontend/src/hooks/use-treasury.ts`](./frontend/src/hooks/use-treasury.ts) | Wagmi hooks for all AgentTreasury interactions — deposits, spend, permissions, sub-agents. Includes `useStETHBalance()` reading Lido stETH ERC20. |
+| **Frontend** | [`frontend/src/hooks/use-lido.ts`](./frontend/src/hooks/use-lido.ts) | Hooks reading Lido wstETH contract — `useStEthPerToken()`, `useWstETHConversion()`, `useStETHToWstETH()`. |
+| **Frontend** | [`frontend/src/hooks/use-lido-apr.ts`](./frontend/src/hooks/use-lido-apr.ts) | Fetches real-time stETH APR from Lido API (`eth-api.lido.fi/v1/protocol/steth/apr/last`). |
+| **Frontend** | [`frontend/src/hooks/use-eth-price.ts`](./frontend/src/hooks/use-eth-price.ts) | Reads ETH/USD price from Chainlink Price Feed onchain for USD conversion display. |
+| **Frontend** | [`frontend/src/app/api/lido-apr/route.ts`](./frontend/src/app/api/lido-apr/route.ts) | Server-side proxy to Lido APR API with 5-minute cache. |
+| **Frontend** | [`frontend/src/components/pages/(app)/stake-panel.tsx`](./frontend/src/components/pages/(app)/stake-panel.tsx) | Stake form calls `Lido.submit()` directly. Wrap form calls `wstETH.wrap()` then `AgentTreasury.depositWstETH()`. |
+| **Frontend** | [`frontend/src/components/pages/(app)/hero-banner.tsx`](./frontend/src/components/pages/(app)/hero-banner.tsx) | Treasury Overview reads `principalWstETH`, `getAvailableYield()`, `totalSpentWstETH` from contract. Live yield calculated from principal × APR. |
+| **Skill** | [`skills/SKILL.md`](./skills/SKILL.md) | AI agent skill documentation — contract addresses, yield mechanics, spending rules, deposit flows. |
+
+---
+
 ## User Flow
 
 ```mermaid
