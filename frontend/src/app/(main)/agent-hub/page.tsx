@@ -3,7 +3,6 @@
 import { Header } from "@/components/pages/(app)";
 import {
   SpendingSummary,
-  QuickActions,
   ActiveServices,
   ActivityFeed,
   AiChat,
@@ -25,29 +24,18 @@ export default function AgentHubPage() {
           <AiChat />
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <div className="rounded-2xl border border-border-main bg-surface p-6">
-              <SpendingSummary />
-            </div>
-          </div>
-          <div>
-            <div className="rounded-2xl border border-border-main bg-surface p-6">
-              <QuickActions />
-            </div>
+        <div className="mt-6">
+          <div className="rounded-2xl border border-border-main bg-surface p-6">
+            <SpendingSummary />
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-5">
-          <div className="lg:col-span-3">
-            <div className="rounded-2xl border border-border-main bg-surface p-6">
-              <ActiveServices />
-            </div>
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="rounded-2xl border border-border-main bg-surface p-6">
+            <ActiveServices />
           </div>
-          <div className="lg:col-span-2">
-            <div className="rounded-2xl border border-border-main bg-surface p-6">
-              <ActivityFeed />
-            </div>
+          <div className="rounded-2xl border border-border-main bg-surface p-6">
+            <ActivityFeed />
           </div>
         </div>
       </main>

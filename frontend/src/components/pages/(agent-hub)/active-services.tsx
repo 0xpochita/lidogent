@@ -1,48 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
-const SERVICE_LOGOS: Record<string, string> = {
-  perplexity: "/Assets/Images/Logo/perplexity-logo.png",
-  openai: "/Assets/Images/Logo/chatgpt-logo.webp",
-  claude: "/Assets/Images/Logo/claude-logo.png",
-  gemini: "/Assets/Images/Logo/gemini-logo.jpeg",
-  chatgpt: "/Assets/Images/Logo/chatgpt-logo.webp",
-};
-
 const AVAILABLE_SERVICES = [
-  { id: "claude", name: "Claude API", logo: "/Assets/Images/Logo/claude-logo.png", description: "Anthropic language model" },
-  { id: "chatgpt", name: "ChatGPT API", logo: "/Assets/Images/Logo/chatgpt-logo.webp", description: "OpenAI language model" },
-  { id: "gemini", name: "Gemini API", logo: "/Assets/Images/Logo/gemini-logo.jpg", description: "Google language model" },
-  { id: "perplexity-new", name: "Perplexity API", logo: "/Assets/Images/Logo/perplexity-logo.png", description: "AI-powered search" },
+  {
+    id: "claude",
+    name: "Claude API",
+    logo: "/Assets/Images/Logo/claude-logo.png",
+    description: "Anthropic language model",
+  },
+  {
+    id: "chatgpt",
+    name: "ChatGPT API",
+    logo: "/Assets/Images/Logo/chatgpt-logo.webp",
+    description: "OpenAI language model",
+  },
+  {
+    id: "gemini",
+    name: "Gemini API",
+    logo: "/Assets/Images/Logo/gemini-logo.jpg",
+    description: "Google language model",
+  },
+  {
+    id: "perplexity-new",
+    name: "Perplexity API",
+    logo: "/Assets/Images/Logo/perplexity-logo.png",
+    description: "AI-powered search",
+  },
 ];
 
-const SERVICES = [
-  { id: "perplexity", name: "Perplexity API", category: "Research", budget: "0.0500", spent: "0.0120", status: "active" as const, lastUsed: "2h ago" },
-  { id: "openai", name: "OpenAI API", category: "Research", budget: "0.0300", spent: "0.0085", status: "active" as const, lastUsed: "5h ago" },
-  { id: "claude", name: "Claude API", category: "Research", budget: "0.0800", spent: "0.0320", status: "active" as const, lastUsed: "1h ago" },
-  { id: "gemini", name: "Gemini API", category: "Research", budget: "0.0200", spent: "0.0035", status: "active" as const, lastUsed: "12h ago" },
-  { id: "chatgpt", name: "ChatGPT API", category: "Research", budget: "0.0400", spent: "0.0000", status: "pending" as const, lastUsed: "N/A" },
-];
-
-function formatETH(value: string): string {
-  return Number.parseFloat(value || "0").toFixed(4);
+interface WhitelistEntry {
+  address: string;
+  addedAt: number;
 }
 
-function ServiceLogo({ id, name }: { id: string; name: string }) {
-  const logo = SERVICE_LOGOS[id];
-  if (logo) {
-    return (
-      <Image src={logo} alt={name} width={32} height={32} className="rounded-lg object-cover" />
-    );
-  }
-  return (
-    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-light">
-      <span className="text-xs font-bold text-brand">{name.charAt(0)}</span>
-    </div>
-  );
+function truncateAddress(addr: string): string {
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
 function AddServiceModal({ onClose }: { onClose: () => void }) {
@@ -65,13 +60,24 @@ function AddServiceModal({ onClose }: { onClose: () => void }) {
       >
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-text-main">Add Service</h3>
-          <button type="button" onClick={onClose} className="cursor-pointer text-text-secondary transition-colors hover:text-text-main">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="cursor-pointer text-text-secondary transition-colors hover:text-text-main"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="h-5 w-5"
+            >
               <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
             </svg>
           </button>
         </div>
-        <p className="mt-1 text-sm text-text-secondary">Select an AI service to whitelist for agent payments</p>
+        <p className="mt-1 text-sm text-text-secondary">
+          Select an AI service to whitelist for agent payments
+        </p>
 
         <div className="mt-5 space-y-2">
           {AVAILABLE_SERVICES.map((service, i) => (
@@ -85,13 +91,32 @@ function AddServiceModal({ onClose }: { onClose: () => void }) {
               whileTap={{ scale: 0.98 }}
               className="flex w-full cursor-pointer items-center gap-4 rounded-xl border border-border-main p-4 text-left transition-colors hover:border-brand hover:bg-brand-light"
             >
-              <Image src={service.logo} alt={service.name} width={40} height={40} className="rounded-xl object-cover" />
+              <Image
+                src={service.logo}
+                alt={service.name}
+                width={40}
+                height={40}
+                className="rounded-xl object-cover"
+              />
               <div className="flex-1">
-                <p className="text-sm font-semibold text-text-main">{service.name}</p>
-                <p className="text-xs text-text-secondary">{service.description}</p>
+                <p className="text-sm font-semibold text-text-main">
+                  {service.name}
+                </p>
+                <p className="text-xs text-text-secondary">
+                  {service.description}
+                </p>
               </div>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 text-text-secondary">
-                <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="h-4 w-4 text-text-secondary"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
+                  clipRule="evenodd"
+                />
               </svg>
             </motion.button>
           ))}
@@ -103,7 +128,9 @@ function AddServiceModal({ onClose }: { onClose: () => void }) {
           transition={{ duration: 0.3, delay: 0.35 }}
           className="mt-4 rounded-xl border border-dashed border-border-main p-4"
         >
-          <p className="text-center text-xs text-text-secondary">Or enter a custom recipient address</p>
+          <p className="text-center text-xs text-text-secondary">
+            Or enter a custom recipient address
+          </p>
           <input
             type="text"
             placeholder="0x..."
@@ -117,13 +144,35 @@ function AddServiceModal({ onClose }: { onClose: () => void }) {
 
 export function ActiveServices() {
   const [showModal, setShowModal] = useState(false);
+  const [whitelist, setWhitelist] = useState<WhitelistEntry[]>([]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("lidogent-whitelist");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const normalized: WhitelistEntry[] = parsed.map((item: string | WhitelistEntry) =>
+          typeof item === "string" ? { address: item, addedAt: Date.now() } : item
+        );
+        setWhitelist(normalized);
+      }
+    } catch {
+      setWhitelist([]);
+    }
+  }, []);
+
+  const hasEntries = whitelist.length > 0;
 
   return (
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-base font-semibold text-text-main">Active Services</h2>
-          <p className="mt-1 text-sm text-text-secondary">Tools and APIs your agent pays for</p>
+          <h2 className="text-base font-semibold text-text-main">
+            Active Services
+          </h2>
+          <p className="mt-1 text-sm text-text-secondary">
+            Whitelisted addresses your agent can pay
+          </p>
         </div>
         <button
           type="button"
@@ -133,62 +182,83 @@ export function ActiveServices() {
           Add Service
         </button>
       </div>
-      <div className="mt-4 overflow-hidden rounded-xl border border-border-main">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-border-main bg-main-bg">
-              <th className="px-4 py-3 text-xs font-medium text-text-secondary">Service</th>
-              <th className="px-4 py-3 text-xs font-medium text-text-secondary">Category</th>
-              <th className="px-4 py-3 text-xs font-medium text-text-secondary">Usage</th>
-              <th className="px-4 py-3 text-xs font-medium text-text-secondary">Last Used</th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-text-secondary">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {SERVICES.map((s) => {
-              const pct = Number.parseFloat(s.budget) > 0 ? (Number.parseFloat(s.spent) / Number.parseFloat(s.budget)) * 100 : 0;
-              const isPending = s.status === "pending";
-              return (
-                <tr key={s.id} className={`border-b border-border-main last:border-b-0 ${isPending ? "opacity-60" : ""}`}>
+
+      {hasEntries ? (
+        <div className="mt-4 overflow-hidden rounded-xl border border-border-main">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-border-main bg-main-bg">
+                <th className="px-4 py-3 text-xs font-medium text-text-secondary">
+                  Address
+                </th>
+                <th className="px-4 py-3 text-xs font-medium text-text-secondary">
+                  Added
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-text-secondary">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {whitelist.map((entry) => (
+                <tr
+                  key={entry.address}
+                  className="border-b border-border-main last:border-b-0"
+                >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
-                      <ServiceLogo id={s.id} name={s.name} />
-                      <span className="font-medium text-text-main">{s.name}</span>
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-light">
+                        <span className="text-xs font-bold text-brand">
+                          {entry.address.slice(2, 4).toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="font-mono text-sm text-text-main">
+                        {truncateAddress(entry.address)}
+                      </span>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
-                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-text-secondary">{s.category}</span>
+                  <td className="px-4 py-3 text-xs text-text-secondary">
+                    {new Date(entry.addedAt).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="w-32">
-                      <div className="flex items-center justify-between text-[10px] text-text-secondary">
-                        <span>{formatETH(s.spent)}</span>
-                        <span>{formatETH(s.budget)}</span>
-                      </div>
-                      <div className="mt-1 h-1.5 w-full rounded-full bg-border-main">
-                        <div className={`h-1.5 rounded-full ${pct > 80 ? "bg-amber-500" : "bg-brand"}`} style={{ width: `${pct}%` }} />
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-text-secondary">{s.lastUsed}</td>
                   <td className="px-4 py-3 text-right">
                     <button
                       type="button"
-                      className={`cursor-pointer rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors ${
-                        isPending
-                          ? "border-brand bg-brand-light text-brand hover:bg-brand hover:text-white"
-                          : "border-border-main text-text-secondary hover:border-red-300 hover:text-red-500"
-                      }`}
+                      className="cursor-pointer rounded-lg border border-border-main px-2.5 py-1 text-xs font-medium text-text-secondary transition-colors hover:border-red-300 hover:text-red-500"
                     >
-                      {isPending ? "Approve" : "Revoke"}
+                      Remove
                     </button>
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="mt-4 flex flex-col items-center justify-center rounded-xl border border-border-main bg-main-bg py-12">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-light">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="h-5 w-5 text-brand"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z"
+              />
+            </svg>
+          </div>
+          <p className="mt-3 text-sm font-medium text-text-main">
+            No services whitelisted
+          </p>
+          <p className="mt-1 max-w-xs text-center text-xs text-text-secondary">
+            Add whitelisted addresses to allow agents to make payments
+          </p>
+        </div>
+      )}
 
       <AnimatePresence>
         {showModal && <AddServiceModal onClose={() => setShowModal(false)} />}

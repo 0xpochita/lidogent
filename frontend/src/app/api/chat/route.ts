@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const MODEL_MAP: Record<string, string> = {
-  claude: "anthropic/claude-sonnet-4-20250514",
-  chatgpt: "openai/gpt-4o",
+  claude: "google/gemini-2.0-flash-001",
+  chatgpt: "google/gemini-2.0-flash-001",
   gemini: "google/gemini-2.0-flash-001",
-  perplexity: "perplexity/sonar",
+  perplexity: "google/gemini-2.0-flash-001",
 };
 
 const VALID_MODELS = new Set(Object.keys(MODEL_MAP));

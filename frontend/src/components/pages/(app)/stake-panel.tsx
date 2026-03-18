@@ -87,7 +87,7 @@ function StakeForm() {
         </div>
       </div>
 
-      <div className="my-3 px-2 text-xs text-text-secondary">1 ETH = 1.0000 stETH (via Lido)</div>
+      <div className="my-3 flex items-center gap-1 px-2 text-xs text-text-secondary">1 ETH = 1.0000 stETH (via Lido <Image src="/Assets/Images/Logo/lido-dao-ldo-logo.svg" alt="Lido" width={12} height={12} className="inline rounded-full" />)</div>
 
       <div className="rounded-xl bg-main-bg p-4">
         <div className="flex items-center justify-between">

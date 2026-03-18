@@ -1,16 +1,21 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
+import { formatEther } from "viem";
+import { useReadContract } from "wagmi";
 import {
   HiOutlinePaperAirplane,
   HiOutlineUserCircle,
-  HiOutlineMagnifyingGlass,
   HiOutlineCpuChip,
-  HiOutlinePuzzlePiece,
   HiOutlineChevronDown,
+  HiOutlineChatBubbleLeftRight,
 } from "react-icons/hi2";
+import { useTreasuryRead } from "@/hooks/use-treasury";
+import {
+  agentTreasuryConfig,
+} from "@/config/contracts";
 
 interface Message {
   id: string;
@@ -21,65 +26,63 @@ interface Message {
   timestamp: number;
 }
 
+interface AgentOption {
+  id: string;
+  address: string;
+  label: string;
+  isParent: boolean;
+}
+
 const MODELS = [
   {
     id: "claude",
     name: "Claude",
     logo: "/Assets/Images/Logo/claude-logo.png",
-    costPerReq: "0.0003",
+    costPerReq: "0.0000",
   },
   {
     id: "chatgpt",
     name: "ChatGPT",
     logo: "/Assets/Images/Logo/chatgpt-logo.webp",
-    costPerReq: "0.0002",
+    costPerReq: "0.0000",
   },
   {
     id: "gemini",
     name: "Gemini",
     logo: "/Assets/Images/Logo/gemini-logo.jpeg",
-    costPerReq: "0.0001",
+    costPerReq: "0.0000",
   },
   {
     id: "perplexity",
     name: "Perplexity",
     logo: "/Assets/Images/Logo/perplexity-logo.png",
-    costPerReq: "0.0002",
+    costPerReq: "0.0000",
   },
 ];
 
-const AGENTS = [
-  {
-    id: "parent",
-    label: "Parent Agent",
-    icon: <HiOutlineUserCircle className="h-4 w-4" />,
-  },
-  {
-    id: "sub-a",
-    label: "Sub-Agent A (Research)",
-    icon: <HiOutlineMagnifyingGlass className="h-4 w-4" />,
-  },
-  {
-    id: "sub-b",
-    label: "Sub-Agent B (Execution)",
-    icon: <HiOutlineCpuChip className="h-4 w-4" />,
-  },
-  {
-    id: "sub-c",
-    label: "Sub-Agent C (Integration)",
-    icon: <HiOutlinePuzzlePiece className="h-4 w-4" />,
-  },
-];
+function truncateAddress(addr: string): string {
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+}
 
 function AgentSelector({
   selected,
   onSelect,
+  agents,
 }: {
   selected: string;
   onSelect: (id: string) => void;
+  agents: AgentOption[];
 }) {
   const [open, setOpen] = useState(false);
-  const current = AGENTS.find((a) => a.id === selected) ?? AGENTS[0];
+  const current = agents.find((a) => a.id === selected) ?? agents[0];
+
+  if (agents.length === 0) {
+    return (
+      <div className="flex items-center gap-2">
+        <p className="text-[11px] text-text-secondary">No agents configured</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center gap-2">
@@ -90,15 +93,21 @@ function AgentSelector({
           onClick={() => setOpen(!open)}
           className="flex cursor-pointer items-center gap-2 rounded-lg border border-border-main bg-surface px-2.5 py-1 text-[11px] font-medium text-text-main transition-colors hover:border-brand"
         >
-          <span className="text-brand">{current.icon}</span>
-          <span>{current.label}</span>
+          <span className="text-brand">
+            {current?.isParent ? (
+              <HiOutlineUserCircle className="h-4 w-4" />
+            ) : (
+              <HiOutlineCpuChip className="h-4 w-4" />
+            )}
+          </span>
+          <span>{current?.label}</span>
           <HiOutlineChevronDown
             className={`h-3 w-3 text-text-secondary transition-transform ${open ? "rotate-180" : ""}`}
           />
         </button>
         {open && (
           <div className="absolute bottom-full left-0 z-50 mb-1 w-56 overflow-hidden rounded-xl border border-border-main bg-surface shadow-lg">
-            {AGENTS.map((agent) => (
+            {agents.map((agent) => (
               <button
                 key={agent.id}
                 type="button"
@@ -119,7 +128,11 @@ function AgentSelector({
                       : "text-text-secondary"
                   }
                 >
-                  {agent.icon}
+                  {agent.isParent ? (
+                    <HiOutlineUserCircle className="h-4 w-4" />
+                  ) : (
+                    <HiOutlineCpuChip className="h-4 w-4" />
+                  )}
                 </span>
                 <span>{agent.label}</span>
                 {selected === agent.id && (
@@ -159,14 +172,48 @@ function ModelLogo({ model }: { model: string }) {
   );
 }
 
-function ActiveAgentCard({ agentId }: { agentId: string }) {
-  const agent = AGENTS.find((a) => a.id === agentId) ?? AGENTS[0];
-  const budgets: Record<string, string> = {
-    parent: "1.2000",
-    "sub-a": "0.2800",
-    "sub-b": "0.2900",
-    "sub-c": "0.2850",
-  };
+function ActiveAgentCard({
+  agent,
+  agents,
+}: {
+  agent: AgentOption | undefined;
+  agents: AgentOption[];
+}) {
+  const currentAgent = agent ?? agents[0];
+
+  const { availableYield } = useTreasuryRead();
+
+  const subAgentRemaining = useReadContract({
+    ...agentTreasuryConfig,
+    functionName: "getSubAgentRemaining",
+    args: currentAgent && !currentAgent.isParent
+      ? [currentAgent.address as `0x${string}`]
+      : undefined,
+    query: {
+      enabled: !!currentAgent && !currentAgent.isParent,
+    },
+  });
+
+  if (!currentAgent) {
+    return (
+      <div className="rounded-xl border border-border-main bg-main-bg px-4 py-3">
+        <p className="text-xs text-text-secondary">No agent selected</p>
+      </div>
+    );
+  }
+
+  const isParent = currentAgent.isParent;
+  let budgetDisplay = "0.0000";
+
+  if (isParent && availableYield.data !== undefined) {
+    budgetDisplay = Number(formatEther(availableYield.data as bigint)).toFixed(4);
+  } else if (!isParent && subAgentRemaining.data !== undefined) {
+    budgetDisplay = Number(formatEther(subAgentRemaining.data as bigint)).toFixed(4);
+  }
+
+  const isLoadingBudget = isParent
+    ? availableYield.isLoading
+    : subAgentRemaining.isLoading;
 
   return (
     <div className="rounded-xl border border-brand/20 bg-brand-light px-4 py-3">
@@ -174,15 +221,21 @@ function ActiveAgentCard({ agentId }: { agentId: string }) {
         Active Agent
       </p>
       <div className="mt-1.5 flex items-center gap-2">
-        <span className="text-brand">{agent.icon}</span>
+        <span className="text-brand">
+          {isParent ? (
+            <HiOutlineUserCircle className="h-4 w-4" />
+          ) : (
+            <HiOutlineCpuChip className="h-4 w-4" />
+          )}
+        </span>
         <span className="text-sm font-semibold text-text-main">
-          {agent.label}
+          {currentAgent.label}
         </span>
       </div>
       <div className="mt-2 flex items-center justify-between gap-1">
         <span className="text-xs text-text-secondary">Remaining budget:</span>
         <span className="flex items-center gap-1 text-xs font-semibold text-brand">
-          {budgets[agentId] ?? "0.0000"} wstETH
+          {isLoadingBudget ? "..." : budgetDisplay} wstETH
           <Image
             src="/Assets/Images/Logo/wstETH-logo.png"
             alt="wstETH"
@@ -200,10 +253,45 @@ export function AiChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [selectedModel, setSelectedModel] = useState("claude");
-  const [selectedAgent, setSelectedAgent] = useState("parent");
+  const [selectedAgent, setSelectedAgent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const { parentAgent, subAgents } = useTreasuryRead();
+
+  const agents = useMemo<AgentOption[]>(() => {
+    const list: AgentOption[] = [];
+
+    if (parentAgent.data && parentAgent.data !== "0x0000000000000000000000000000000000000000") {
+      list.push({
+        id: "parent",
+        address: parentAgent.data as string,
+        label: `Parent (${truncateAddress(parentAgent.data as string)})`,
+        isParent: true,
+      });
+    }
+
+    if (subAgents.data && Array.isArray(subAgents.data)) {
+      (subAgents.data as string[]).forEach((addr, i) => {
+        list.push({
+          id: `sub-${i}`,
+          address: addr,
+          label: `Sub-Agent ${i + 1} (${truncateAddress(addr)})`,
+          isParent: false,
+        });
+      });
+    }
+
+    return list;
+  }, [parentAgent.data, subAgents.data]);
+
+  useEffect(() => {
+    if (agents.length > 0 && !selectedAgent) {
+      setSelectedAgent(agents[0].id);
+    }
+  }, [agents, selectedAgent]);
+
+  const currentAgent = agents.find((a) => a.id === selectedAgent);
   const currentModel = MODELS.find((m) => m.id === selectedModel) ?? MODELS[0];
 
   useEffect(() => {
@@ -255,6 +343,21 @@ export function AiChat() {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+
+      const activity = {
+        id: assistantMessage.id,
+        type: "chat",
+        model: selectedModel,
+        modelName: currentModel.name,
+        cost: currentModel.costPerReq,
+        timestamp: Date.now(),
+        preview: trimmed.slice(0, 60),
+      };
+      try {
+        const stored = JSON.parse(localStorage.getItem("lidogent-activity") || "[]");
+        stored.unshift(activity);
+        localStorage.setItem("lidogent-activity", JSON.stringify(stored.slice(0, 50)));
+      } catch {}
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Something went wrong";
@@ -273,6 +376,8 @@ export function AiChat() {
     },
     [sendMessage]
   );
+
+  const agentsLoading = parentAgent.isLoading || subAgents.isLoading;
 
   return (
     <div>
@@ -304,7 +409,13 @@ export function AiChat() {
             <span>/ request</span>
           </p>
         </div>
-        <ActiveAgentCard agentId={selectedAgent} />
+        {agentsLoading ? (
+          <div className="rounded-xl border border-border-main bg-main-bg px-4 py-3">
+            <p className="text-xs text-text-secondary">Loading agents...</p>
+          </div>
+        ) : (
+          <ActiveAgentCard agent={currentAgent} agents={agents} />
+        )}
       </div>
 
       <div className="mt-4 flex items-center gap-2">
@@ -337,8 +448,9 @@ export function AiChat() {
       >
         <div className="space-y-4">
           {messages.length === 0 && !isLoading && (
-            <div className="flex h-full items-center justify-center py-20">
-              <p className="text-sm text-text-secondary">
+            <div className="flex h-full flex-col items-center justify-center py-36">
+              <HiOutlineChatBubbleLeftRight className="h-8 w-8 text-text-secondary/30" />
+              <p className="mt-5 text-sm text-text-secondary">
                 Start a conversation with {currentModel.name}
               </p>
             </div>
@@ -424,7 +536,11 @@ export function AiChat() {
       </div>
 
       <div className="mt-2 flex items-center justify-between px-1">
-        <AgentSelector selected={selectedAgent} onSelect={setSelectedAgent} />
+        <AgentSelector
+          selected={selectedAgent}
+          onSelect={setSelectedAgent}
+          agents={agents}
+        />
         <p className="flex items-center gap-1 text-[11px] text-text-secondary">
           <Image
             src="/Assets/Images/Logo/wstETH-logo.png"
