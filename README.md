@@ -6,6 +6,7 @@
 **Yield-bearing operating budget for AI agents, powered by Lido stETH.**
 **Humans deposit, principal stays locked, agents spend only from yield.**
 
+[![Live Demo](https://img.shields.io/badge/Live-lidogent.vercel.app-000)](https://lidogent.vercel.app)
 [![Ethereum](https://img.shields.io/badge/Ethereum-Mainnet-blue)](https://etherscan.io)
 [![Lido](https://img.shields.io/badge/Lido-stETH-00A3FF)](https://lido.fi)
 [![Chainlink](https://img.shields.io/badge/Chainlink-ETH%2FUSD-375BD2)](https://data.chain.link)

@@ -379,6 +379,21 @@
 
 ---
 
+## Session 29 — Conversation Log Sync (2026-03-18)
+
+- Synced conversation-log.md with sessions 25-28
+
+### Commit: `9422164` — docs: update conversation log with sessions 25-28
+
+---
+
+## Session 30 — Live Demo Link (2026-03-18)
+
+- Added live demo link to README: https://lidogent.vercel.app
+- Frontend deployed on Vercel
+
+---
+
 ## Deployed Contracts
 
 | Contract | Address | Status |
