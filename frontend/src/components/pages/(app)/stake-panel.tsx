@@ -2,10 +2,32 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { HiOutlineBolt, HiOutlineCube, HiOutlineChevronRight, HiOutlineInformationCircle, HiOutlineXMark } from "react-icons/hi2";
+import { HiOutlineBolt, HiOutlineCube, HiOutlineChevronRight, HiOutlineInformationCircle, HiOutlineXMark, HiOutlineArrowTopRightOnSquare } from "react-icons/hi2";
 import { AnimatePresence, motion } from "framer-motion";
+import { parseEther, formatEther } from "viem";
+import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { toast } from "sonner";
+import {
+  LIDO_STETH_ADDRESS,
+  WSTETH_ADDRESS,
+  AGENT_TREASURY_ADDRESS,
+  erc20Abi,
+  agentTreasuryConfig,
+} from "@/config/contracts";
+import { useStETHBalance, useApproveStETH, useDepositStETH } from "@/hooks/use-treasury";
+import { useStEthPerToken } from "@/hooks/use-lido";
 
 type Mode = "stake" | "wrap";
+
+const LIDO_SUBMIT_ABI = [
+  {
+    type: "function",
+    name: "submit",
+    inputs: [{ name: "_referral", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "payable",
+  },
+] as const;
 
 function InfoModal({ onClose }: { onClose: () => void }) {
   return (
@@ -45,26 +67,23 @@ function InfoModal({ onClose }: { onClose: () => void }) {
               </div>
               <div>
                 <p className="text-sm font-semibold text-text-main">Stake ETH</p>
-                <p className="text-xs text-text-secondary">Convert ETH to stETH via Lido</p>
+                <p className="text-xs text-text-secondary">Calls Lido submit() directly on mainnet</p>
               </div>
             </div>
             <ul className="mt-3 space-y-1.5">
               <li className="flex items-center gap-2 text-xs text-text-secondary">
                 <span className="text-brand">1.</span>
-                <span>Send</span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" fill="currentColor" className="h-3 w-3 text-text-main"><path d="M311.9 260.8L160 353.6 8 260.8 160 0l151.9 260.8zM160 383.4L8 290.6 160 512l152-221.4-152 92.8z" /></svg>
-                <span>ETH to Lido staking contract</span>
+                <span>Send ETH to Lido contract (0xae7a...)</span>
               </li>
               <li className="flex items-center gap-2 text-xs text-text-secondary">
                 <span className="text-brand">2.</span>
                 <span>Receive</span>
                 <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={12} height={12} />
-                <span>stETH (liquid staking token)</span>
+                <span>stETH 1:1</span>
               </li>
               <li className="flex items-center gap-2 text-xs text-text-secondary">
                 <span className="text-brand">3.</span>
-                <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={12} height={12} />
-                <span>stETH earns ~3.5% APY from Ethereum staking rewards</span>
+                <span>stETH earns ~3.5% APY automatically</span>
               </li>
             </ul>
           </motion.div>
@@ -80,31 +99,24 @@ function InfoModal({ onClose }: { onClose: () => void }) {
                 <HiOutlineCube className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-text-main">Wrap stETH</p>
-                <p className="text-xs text-text-secondary">Wrap stETH to wstETH and lock in treasury</p>
+                <p className="text-sm font-semibold text-text-main">Wrap & Lock</p>
+                <p className="text-xs text-text-secondary">Calls AgentTreasury depositStETH() on mainnet</p>
               </div>
             </div>
             <ul className="mt-3 space-y-1.5">
               <li className="flex items-center gap-2 text-xs text-text-secondary">
                 <span className="text-brand">1.</span>
-                <span>Wrap</span>
-                <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={12} height={12} />
-                <span>stETH to</span>
-                <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" width={12} height={12} className="rounded-full" />
-                <span>wstETH</span>
+                <span>Approve stETH to Treasury contract</span>
               </li>
               <li className="flex items-center gap-2 text-xs text-text-secondary">
                 <span className="text-brand">2.</span>
+                <span>Treasury wraps to</span>
                 <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" width={12} height={12} className="rounded-full" />
-                <span>wstETH is locked as principal in the Agent Treasury</span>
+                <span>wstETH and locks as principal</span>
               </li>
               <li className="flex items-center gap-2 text-xs text-text-secondary">
                 <span className="text-brand">3.</span>
-                <span>Yield accrues over time and becomes the agent spending budget</span>
-              </li>
-              <li className="flex items-center gap-2 text-xs text-text-secondary">
-                <span className="text-brand">4.</span>
-                <span>Principal is structurally inaccessible to the agent</span>
+                <span>Yield accrues from wstETH value growth</span>
               </li>
             </ul>
           </motion.div>
@@ -115,7 +127,7 @@ function InfoModal({ onClose }: { onClose: () => void }) {
             transition={{ delay: 0.3 }}
             className="text-center text-[11px] text-text-secondary"
           >
-            Stake first to get stETH, then wrap to fund your agent treasury.
+            All transactions interact directly with Lido and AgentTreasury on Ethereum Mainnet.
           </motion.p>
         </div>
       </motion.div>
@@ -125,7 +137,37 @@ function InfoModal({ onClose }: { onClose: () => void }) {
 
 function StakeForm() {
   const [amount, setAmount] = useState("");
+  const { address, isConnected } = useAccount();
+  const { data: ethBalance } = useBalance({ address });
+  const { writeContract, isPending, data: txHash } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+
   const stETHAmount = amount ? (Number.parseFloat(amount) * 0.9998).toFixed(6) : "0.000000";
+  const isLoading = isPending || isConfirming;
+
+  const handleStake = () => {
+    if (!amount || Number.parseFloat(amount) <= 0) return;
+    writeContract(
+      {
+        address: LIDO_STETH_ADDRESS,
+        abi: LIDO_SUBMIT_ABI,
+        functionName: "submit",
+        args: ["0x0000000000000000000000000000000000000000"],
+        value: parseEther(amount),
+      },
+      {
+        onSuccess: () => toast.success("Staking transaction submitted"),
+        onError: (err) => toast.error(err.message.split("\n")[0]),
+      },
+    );
+  };
+
+  const handleMax = () => {
+    if (ethBalance) {
+      const max = Number.parseFloat(formatEther(ethBalance.value)) - 0.01;
+      if (max > 0) setAmount(max.toFixed(6));
+    }
+  };
 
   return (
     <>
@@ -136,7 +178,8 @@ function StakeForm() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0"
-            className="w-full bg-transparent text-3xl font-semibold text-text-main placeholder:text-text-secondary/40 focus:outline-none"
+            disabled={isLoading}
+            className="w-full bg-transparent text-3xl font-semibold text-text-main placeholder:text-text-secondary/40 focus:outline-none disabled:opacity-50"
           />
           <div className="flex items-center gap-2 rounded-full bg-surface px-3 py-1.5">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" fill="currentColor" className="h-4 w-4 text-text-main">
@@ -148,8 +191,8 @@ function StakeForm() {
         <div className="mt-2 flex items-center justify-between text-xs text-text-secondary">
           <span>~$ 0.00</span>
           <div className="flex items-center gap-2">
-            <span>0.00000000</span>
-            <button type="button" className="cursor-pointer font-semibold text-brand hover:text-brand-hover">
+            <span>{ethBalance ? Number.parseFloat(formatEther(ethBalance.value)).toFixed(8) : "0.00000000"}</span>
+            <button type="button" onClick={handleMax} className="cursor-pointer font-semibold text-brand hover:text-brand-hover">
               MAX
             </button>
           </div>
@@ -157,12 +200,7 @@ function StakeForm() {
       </div>
 
       <div className="my-3 flex items-center justify-between px-2">
-        <span className="text-xs text-text-secondary">1 ETH <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" fill="currentColor" className="inline h-2.5 w-2.5"><path d="M311.9 260.8L160 353.6 8 260.8 160 0l151.9 260.8zM160 383.4L8 290.6 160 512l152-221.4-152 92.8z" /></svg> = 1.0000 stETH <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={11} height={11} className="inline" /></span>
-        <button type="button" className="cursor-pointer text-text-secondary transition-colors hover:text-text-main">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-            <path fillRule="evenodd" d="M2.24 6.8a.75.75 0 0 0 1.06-.04l1.95-2.1v8.59a.75.75 0 0 0 1.5 0V4.66l1.95 2.1a.75.75 0 1 0 1.1-1.02l-3.25-3.5a.75.75 0 0 0-1.1 0L2.2 5.74a.75.75 0 0 0 .04 1.06Zm8.6 9.02a.75.75 0 0 0 1.06-.04l1.95-2.1v8.59a.75.75 0 0 0 1.5 0v-8.59l1.95 2.1a.75.75 0 1 0 1.1-1.02l-3.25-3.5a.75.75 0 0 0-1.1 0l-3.25 3.5a.75.75 0 0 0 .04 1.06Z" clipRule="evenodd" />
-          </svg>
-        </button>
+        <span className="text-xs text-text-secondary">1 ETH = 1.0000 stETH (via Lido)</span>
       </div>
 
       <div className="rounded-xl bg-main-bg p-4">
@@ -175,18 +213,18 @@ function StakeForm() {
         </div>
         <div className="mt-2 flex items-center justify-between text-xs text-text-secondary">
           <span>~$ 0.00</span>
-          <span>0.00000000</span>
+          <a href="https://etherscan.io/address/0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84" target="_blank" rel="noopener noreferrer" className="flex cursor-pointer items-center gap-1 text-brand hover:text-brand-hover">
+            Lido: 0xae7a...fE84 <HiOutlineArrowTopRightOnSquare className="h-3 w-3" />
+          </a>
         </div>
       </div>
 
       <div className="mt-4 space-y-2 px-1">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-text-secondary">Exchange rate</span>
-          <span className="text-text-main">1 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" fill="currentColor" className="inline h-2.5 w-2.5"><path d="M311.9 260.8L160 353.6 8 260.8 160 0l151.9 260.8zM160 383.4L8 290.6 160 512l152-221.4-152 92.8z" /></svg> ETH = 1.0000 <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={11} height={11} className="inline" /> stETH</span>
-        </div>
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-text-secondary">Max transaction cost</span>
-          <span className="text-text-main">~$ 0.50</span>
+          <span className="text-text-secondary">Contract</span>
+          <a href="https://etherscan.io/address/0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84" target="_blank" rel="noopener noreferrer" className="flex cursor-pointer items-center gap-1 font-mono text-brand hover:text-brand-hover">
+            0xae7a...fE84 <HiOutlineArrowTopRightOnSquare className="h-3 w-3" />
+          </a>
         </div>
         <div className="flex items-center justify-between text-xs">
           <span className="text-text-secondary">Reward fee</span>
@@ -197,10 +235,11 @@ function StakeForm() {
       <div className="mt-5">
         <button
           type="button"
-          disabled={!amount || Number.parseFloat(amount) <= 0}
+          disabled={!isConnected || !amount || Number.parseFloat(amount) <= 0 || isLoading}
+          onClick={handleStake}
           className="w-full cursor-pointer rounded-xl bg-brand py-4 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Stake ETH
+          {!isConnected ? "Connect Wallet" : isLoading ? "Confirming..." : isSuccess ? "Staked" : "Stake ETH"}
         </button>
       </div>
     </>
@@ -209,7 +248,73 @@ function StakeForm() {
 
 function WrapForm() {
   const [amount, setAmount] = useState("");
-  const wstETHAmount = amount ? (Number.parseFloat(amount) * 0.8695).toFixed(6) : "0.000000";
+  const [step, setStep] = useState<"input" | "approving" | "depositing">("input");
+  const { address, isConnected } = useAccount();
+  const { balance: stETHBalance } = useStETHBalance();
+  const { data: rateData } = useStEthPerToken();
+
+  const { writeContract: writeApprove, isPending: approving, data: approveTxHash } = useWriteContract();
+  const { isSuccess: approveConfirmed } = useWaitForTransactionReceipt({ hash: approveTxHash });
+
+  const { writeContract: writeDeposit, isPending: depositing, data: depositTxHash } = useWriteContract();
+  const { isLoading: depositConfirming, isSuccess: depositConfirmed } = useWaitForTransactionReceipt({ hash: depositTxHash });
+
+  const rate = rateData ? Number(formatEther(rateData)) : 1.1494;
+  const wstETHAmount = amount ? (Number.parseFloat(amount) / rate).toFixed(6) : "0.000000";
+  const isLoading = approving || depositing || depositConfirming;
+
+  const handleWrap = () => {
+    if (!amount || Number.parseFloat(amount) <= 0) return;
+    const parsedAmount = parseEther(amount);
+
+    setStep("approving");
+    writeApprove(
+      {
+        address: LIDO_STETH_ADDRESS,
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [AGENT_TREASURY_ADDRESS, parsedAmount],
+      },
+      {
+        onSuccess: () => {
+          toast.success("Approval confirmed. Depositing...");
+          setStep("depositing");
+          writeDeposit(
+            {
+              ...agentTreasuryConfig,
+              functionName: "depositStETH",
+              args: [parsedAmount],
+            },
+            {
+              onSuccess: () => toast.success("Deposit submitted. wstETH locked in treasury."),
+              onError: (err) => {
+                toast.error(err.message.split("\n")[0]);
+                setStep("input");
+              },
+            },
+          );
+        },
+        onError: (err) => {
+          toast.error(err.message.split("\n")[0]);
+          setStep("input");
+        },
+      },
+    );
+  };
+
+  const handleMax = () => {
+    if (stETHBalance.data) {
+      setAmount(formatEther(stETHBalance.data as bigint));
+    }
+  };
+
+  const buttonLabel = () => {
+    if (!isConnected) return "Connect Wallet";
+    if (step === "approving" || approving) return "Approving stETH...";
+    if (step === "depositing" || depositing || depositConfirming) return "Locking in Treasury...";
+    if (depositConfirmed) return "Locked in Treasury";
+    return "Wrap & Lock in Treasury";
+  };
 
   return (
     <>
@@ -220,7 +325,8 @@ function WrapForm() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0"
-            className="w-full bg-transparent text-3xl font-semibold text-text-main placeholder:text-text-secondary/40 focus:outline-none"
+            disabled={isLoading}
+            className="w-full bg-transparent text-3xl font-semibold text-text-main placeholder:text-text-secondary/40 focus:outline-none disabled:opacity-50"
           />
           <div className="flex items-center gap-2 rounded-full bg-surface px-3 py-1.5">
             <Image src="/Assets/Images/Logo/stETH-logo.svg" alt="stETH" width={16} height={16} />
@@ -230,8 +336,8 @@ function WrapForm() {
         <div className="mt-2 flex items-center justify-between text-xs text-text-secondary">
           <span>~$ 0.00</span>
           <div className="flex items-center gap-2">
-            <span>0.00000000</span>
-            <button type="button" className="cursor-pointer font-semibold text-brand hover:text-brand-hover">
+            <span>{stETHBalance.data ? Number.parseFloat(formatEther(stETHBalance.data as bigint)).toFixed(8) : "0.00000000"}</span>
+            <button type="button" onClick={handleMax} className="cursor-pointer font-semibold text-brand hover:text-brand-hover">
               MAX
             </button>
           </div>
@@ -270,21 +376,28 @@ function WrapForm() {
       <div className="mt-4 space-y-2 px-1">
         <div className="flex items-center justify-between text-xs">
           <span className="text-text-secondary">Exchange rate</span>
-          <span className="text-text-main">1 stETH = ~0.8695 wstETH</span>
+          <span className="text-text-main">1 stETH = ~{(1 / rate).toFixed(4)} wstETH</span>
         </div>
         <div className="flex items-center justify-between text-xs">
-          <span className="text-text-secondary">Max transaction cost</span>
-          <span className="text-text-main">~$ 0.10</span>
+          <span className="text-text-secondary">Treasury contract</span>
+          <a href="https://etherscan.io/address/0xf5b4B061c2A28dfF834b1C1648E0D05120529c81" target="_blank" rel="noopener noreferrer" className="flex cursor-pointer items-center gap-1 font-mono text-brand hover:text-brand-hover">
+            0xf5b4...9c81 <HiOutlineArrowTopRightOnSquare className="h-3 w-3" />
+          </a>
+        </div>
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-text-secondary">Steps</span>
+          <span className="text-text-main">1. Approve stETH  2. Deposit & lock</span>
         </div>
       </div>
 
       <div className="mt-5">
         <button
           type="button"
-          disabled={!amount || Number.parseFloat(amount) <= 0}
+          disabled={!isConnected || !amount || Number.parseFloat(amount) <= 0 || isLoading}
+          onClick={handleWrap}
           className="w-full cursor-pointer rounded-xl bg-brand py-4 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Wrap & Lock in Treasury
+          {buttonLabel()}
         </button>
       </div>
     </>
@@ -382,9 +495,9 @@ export function StakePanel() {
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">1</span>
                     <span className="text-sm text-text-main">Stake ETH via Lido</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs text-text-secondary">Send ETH to Lido</span>
-                  </div>
+                  <a href="https://etherscan.io/address/0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84" target="_blank" rel="noopener noreferrer" className="flex cursor-pointer items-center gap-0.5 font-mono text-[10px] text-brand hover:text-brand-hover">
+                    0xae7a...fE84 <HiOutlineArrowTopRightOnSquare className="h-2.5 w-2.5" />
+                  </a>
                 </div>
                 <div className="flex items-center justify-between rounded-xl bg-main-bg px-4 py-3">
                   <div className="flex items-center gap-2">
@@ -402,23 +515,19 @@ export function StakePanel() {
                 <div className="flex items-center justify-between rounded-xl bg-main-bg px-4 py-3">
                   <div className="flex items-center gap-2">
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">1</span>
-                    <span className="text-sm text-text-main">Wrap stETH to wstETH</span>
+                    <span className="text-sm text-text-main">Approve stETH</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs text-text-secondary">Non-rebasing</span>
-                    <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" width={14} height={14} className="rounded-full" />
-                  </div>
+                  <a href="https://etherscan.io/address/0xf5b4B061c2A28dfF834b1C1648E0D05120529c81" target="_blank" rel="noopener noreferrer" className="flex cursor-pointer items-center gap-0.5 font-mono text-[10px] text-brand hover:text-brand-hover">
+                    0xf5b4...9c81 <HiOutlineArrowTopRightOnSquare className="h-2.5 w-2.5" />
+                  </a>
                 </div>
                 <div className="flex items-center justify-between rounded-xl bg-main-bg px-4 py-3">
                   <div className="flex items-center gap-2">
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">2</span>
-                    <span className="text-sm text-text-main">Lock in Treasury</span>
+                    <span className="text-sm text-text-main">Wrap to wstETH & lock</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5 text-brand">
-                      <path fillRule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-xs font-medium text-brand">Principal locked</span>
+                    <Image src="/Assets/Images/Logo/wstETH-logo.png" alt="wstETH" width={14} height={14} className="rounded-full" />
                   </div>
                 </div>
               </>
