@@ -461,6 +461,19 @@
 
 ---
 
+## Session 33 — Demo Video & Final Submission (2026-03-19)
+
+### Human-Agent Collaboration
+- **Human:** Recorded demo video and uploaded to YouTube
+- **Agent:** Updated videoURL via Synthesis API
+- **Agent:** Added YouTube badge to README
+- **Agent:** Updated conversation log and synced to Synthesis API
+
+### Video
+- Demo video: https://youtu.be/d9FQcwvv_bo
+
+---
+
 ## Deployed Contracts
 
 | Contract | Address | Status |
