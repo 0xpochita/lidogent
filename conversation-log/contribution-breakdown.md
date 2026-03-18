@@ -108,6 +108,14 @@
 - Managed Synthesis hackathon conversationLog updates (23 submissions)
 - Set up CLAUDE.md with security rules and conventional commits
 
+### Agent CLI & Onchain Spend
+- Built scripts/agent-demo.ts — interactive CLI agent with onchain yield verification
+- Built scripts/agent-spend.ts — real onchain spend() via agent wallet
+- Updated /api/chat with server-side yield verification (reads getAvailableYield() per request)
+- Implemented hybrid approach: onchain yield read (free) + offchain accounting
+- Updated AI Chat component with yield verified badge and toast notifications
+- Updated Activity Feed with verified status per request
+
 ### DevOps & Security
 - Handled GitHub authentication issues
 - Managed git workflow (conventional commits, .gitignore)
@@ -122,12 +130,13 @@
 
 | Metric | Value |
 |--------|-------|
-| Total sessions | 23 |
-| Total commits | 25+ |
+| Total sessions | 31 |
+| Total commits | 31+ |
 | Smart contract size | 8.9KB (well under 24KB limit) |
 | Fork tests | 30/30 passing |
 | Frontend components | 25+ |
 | Custom hooks | 10+ |
+| CLI scripts | 2 (agent-demo.ts, agent-spend.ts) |
 | API routes | 3 (/api/chat, /api/rpc, /api/lido-apr) |
 | Pages | 3 (Stake, Agent Hub, Treasury) |
 | Contract deployments | 2 (v1 deprecated, v2 active) |
@@ -148,3 +157,5 @@ Key collaborative moments:
 4. **Wrap flow** — Agent read Lido docs to implement correct 4-step flow after human pointed out the issue
 5. **Free tier decision** — Human decided to use Gemini free tier for demo instead of paid models
 6. **Security** — Human requested RPC proxy to hide Alchemy key, agent implemented server-side proxy
+7. **Gas fee problem** — Human flagged high gas cost, agent designed hybrid yield-verification approach (no gas needed)
+8. **CLI demo** — Human requested terminal demo for video, agent built two scripts for demo and real onchain spend
