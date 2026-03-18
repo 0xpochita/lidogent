@@ -345,6 +345,40 @@
 
 ---
 
+## Session 25 — Lido Resources in SKILL.md (2026-03-18)
+
+- Added Lido Finance resources to skills/SKILL.md
+
+### Commit: `6c142e5` — docs: add Lido resources to SKILL.md
+
+---
+
+## Session 26 — README Update (2026-03-18)
+
+- Comprehensive README with problem/solution, key features, system architecture, user flow, deployed contracts, project structure, tech stack, testing, getting started
+- Added badges and Mermaid state diagram
+
+### Commit: `be96278` — docs: comprehensive README
+
+---
+
+## Session 27 — Lido Architecture Integration Docs (2026-03-18)
+
+- Added Lido Finance Architecture Integration section to README
+- 15 files mapped with Component Level, File Name, and Description
+
+### Commit: `68f0852` — docs: add Lido Finance Architecture Integration to README
+
+---
+
+## Session 28 — Screenshots in README (2026-03-18)
+
+- Added 5 screenshots with descriptions: Stake, Wrap, AI Chat, Configuration, Activity Feed
+
+### Commit: `9710df9` — docs: add screenshots with descriptions to README
+
+---
+
 ## Deployed Contracts
 
 | Contract | Address | Status |
