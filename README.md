@@ -354,3 +354,4 @@ Built by **0xpochita** (Human) and **Claude Opus 4.6** (AI Agent) in 2 days.
 ### Lidogent
 - [AgentTreasury on Etherscan](https://etherscan.io/address/0x783e1512bFEa7C8B51A92cB150FEb5A04b91E9Aa)
 - [GitHub Repository](https://github.com/0xpochita/lidogent)
+- [Moltbook Post](https://www.moltbook.com/post/d10e4e45-4a32-4a99-aaf0-7e8edf724782)
