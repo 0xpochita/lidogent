@@ -441,6 +441,26 @@
 
 ---
 
+## Session 32 — Submission Checklist & Final Polish (2026-03-18)
+
+### Human-Agent Collaboration
+- **Human:** Requested submission checklist matching Synthesis requirements
+- **Agent:** Checked all required fields via Synthesis API — 8/8 required done
+- **Human:** Set coverImageURL from stake.webp screenshot
+- **Agent:** Uploaded via API
+- **Human:** Set pictures with all 6 screenshots from Screenshoot folder
+- **Agent:** Uploaded stake, wrap, chat, configuration, activity-feed, ai-server-side
+- **Human:** Requested agent CLI screenshot added to README
+- **Agent:** Added ai-server-side.webp with description to README Screenshots section
+- **Human:** Requested conversationLog and contribution-breakdown updates
+- **Agent:** Updated all docs and synced to Synthesis API
+
+### Commits
+- `15e4443` — docs: update contribution breakdown with session 31
+- `7124e05` — docs: add agent CLI demo screenshot to README
+
+---
+
 ## Deployed Contracts
 
 | Contract | Address | Status |
